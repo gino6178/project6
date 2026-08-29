@@ -2,5 +2,5 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 outputs/*.log
-data/
-runs/
+/data/
+/runs/
