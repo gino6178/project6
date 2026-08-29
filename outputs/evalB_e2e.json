@@ -1,0 +1,56 @@
+{
+ "n": 300,
+ "results": {
+  "ours": {
+   "overhang_rate": 0.023809523809523808,
+   "embedded_rate": 0.0332512315270936,
+   "straddling_rate": 0.035303776683087026,
+   "headroom_rate": 0.002052545155993432,
+   "datum_rate": 0.01600985221674877,
+   "tier_use_area_frac": 0.2636060585659774,
+   "tier_use_objects_per_scene": 1.17,
+   "tier_density_ratio": 0.8458025706120198,
+   "tier_precision": 0.7185185185185186,
+   "step_blocked_scene_rate": 0.16333333333333333,
+   "any_violation_scene_rate": 0.33666666666666667,
+   "n_scenes": 300,
+   "n_objects": 2436,
+   "ccn_sweeping_robot": 0.6985551574408435,
+   "ccn_wheelchair": 0.647540317823852,
+   "ccn_wheeled_robot": 0.6748005943392644,
+   "ccn_quadruped": 0.8227649110004482,
+   "ccn_adult": 0.8152486093168271,
+   "ccn_spread": 0.3150710629312175,
+   "objects_per_scene": 8.12,
+   "elevation_f1": 0.0
+  },
+  "flatten": {
+   "overhang_rate": 0.014608695652173913,
+   "embedded_rate": 0.021217391304347827,
+   "straddling_rate": 0.020869565217391306,
+   "headroom_rate": 0.0020869565217391303,
+   "datum_rate": 0.011130434782608696,
+   "tier_use_area_frac": 0.05053329188725911,
+   "tier_use_objects_per_scene": 0.0,
+   "tier_density_ratio": 0.012087141871664727,
+   "tier_precision": 0.0,
+   "step_blocked_scene_rate": 0.08,
+   "any_violation_scene_rate": 0.2833333333333333,
+   "n_scenes": 300,
+   "n_objects": 2875,
+   "ccn_sweeping_robot": 0.5483224887215337,
+   "ccn_wheelchair": 0.49396469491594036,
+   "ccn_wheeled_robot": 0.5126126848612963,
+   "ccn_quadruped": 0.7142871592437016,
+   "ccn_adult": 0.745999943268546,
+   "ccn_spread": 0.39892994967202566,
+   "objects_per_scene": 9.583333333333334,
+   "elevation_f1": 0.0
+  }
+ },
+ "stop_thresholds": {
+  "ours": 0.15,
+  "flatten": 0.2
+ },
+ "gt_objects_per_scene": 9.03
+}

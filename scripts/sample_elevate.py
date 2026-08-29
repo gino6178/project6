@@ -405,10 +405,17 @@ def main():
                 [per_tier_sample(m, r["elev"], dev, rg, stop_p=p)
                  for r in val_recs], ccn_n=len(val_recs))
             print(f"per_tier done (stop_p={p})", flush=True)
-        # no reference layout here, so recall is measured against the best
-        # elevation use any method achieved on these rooms
-        best = max((r["tier_use_objects_per_scene"] for r in results.values()),
-                   default=0.0) or 1.0
+        # Recall needs a reference for how much elevation a room should carry.
+        # These rooms have no layout to read it from, so it comes from the
+        # in-distribution ground truth via --stop-json; without that the score
+        # would silently be zero for everyone.
+        ref_use = 0.0
+        if args.stop_json and os.path.exists(args.stop_json):
+            ref_use = float(json.load(open(args.stop_json)).get("results", {})
+                            .get("gt", {}).get("tier_use_objects_per_scene", 0.0))
+        best = ref_use or max(
+            (r["tier_use_objects_per_scene"] for r in results.values()),
+            default=0.0) or 1.0
         for m in results:
             results[m]["elevation_f1"] = elevation_f1(
                 results[m], {"tier_use_objects_per_scene": best})
@@ -518,8 +525,13 @@ def main():
         run("per_tier", load_model(args.flat_run), per_tier=True)
 
     ref = results.get("gt", {})
+    if not ref and args.stop_json and os.path.exists(args.stop_json):
+        ref = json.load(open(args.stop_json)).get("results", {}).get("gt", {})
     for m in results:
         results[m]["elevation_f1"] = elevation_f1(results[m], ref)
+    if not ref:
+        print("warning: no ground-truth reference for recall; "
+              "elevation_f1 is not meaningful in this run", flush=True)
 
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w") as fh:

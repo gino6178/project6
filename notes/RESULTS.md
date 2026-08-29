@@ -1,8 +1,9 @@
 # Results
 
-Four rounds. Each acted on what the previous one measured. Round 3 corrects an
-attribution round 2 got wrong; round 4 adds the metric that three rounds of
-results kept asking for, and refutes the next step rounds 2 and 3 proposed.
+Six rounds. Each acted on what the previous one measured. Round 3 corrects an
+attribution round 2 got wrong; round 4 adds the metric three rounds kept asking
+for and refutes the next step rounds 2 and 3 proposed; rounds 5 and 6 act on
+that refutation and close the out-of-distribution gap.
 
 Model: 27.8 M-parameter autoregressive layout transformer. Sampling, rejection
 and metrics are shared by every row, so each comparison isolates one variable.
@@ -13,6 +14,8 @@ and metrics are shared by every row, so each comparison isolates one variable.
 | R2 | calibrated, 14,782 pairs | 13,300 | 12 tries, step term, stop at 0.5 |
 | R3 | calibrated, 14,782 pairs | 13,300 | as R2, stop threshold calibrated |
 | R4 | same as R3 | 13,300 | as R3; adds tier precision, density and elevation F1 |
+| R5 | **architecture-driven**, 11,374 pairs | 10,200 | as R4 |
+| R6 | same as R5 | 10,200 | as R5; **M1 generates the field** |
 
 ---
 
@@ -124,10 +127,10 @@ separates us from it is not accuracy but willingness to use the elevation.
 **Still far from clean.** 0.45 of generated scenes contain at least one
 violation against 0.003 of ground truth.
 
-**Two corpus statistics remain off.** Transition width 1.90 m against a real
-2.93 m; region size 0.35 of the floor against a real 0.27. Round 3 blamed
-3D-FRONT's room sizes for this; round 4 measured it and that was wrong — see
-below.
+**One corpus statistic remains off.** Transition width, 1.68 m against a real
+2.93 m. Region size was the other one and round 5 fixed it (0.278 against a real
+0.271) once round 4 had established the cause was the derivation rule, not the
+room size.
 
 ---
 
@@ -199,6 +202,81 @@ was also tested and rejected: ~350 usable rooms across the dataset, and most
 adjacent pairs are combinations like bedroom + living room that are not one
 space.
 
+## Rounds 5 and 6 — acting on the refutation
+
+Round 4 established that the region fraction would not move because the region
+was derived from furniture, and that room size was not the lever. Round 5
+changed the derivation: the region is now a rectangle taken off a wall at a
+depth drawn from the measured distribution, and the furniture adapts to it.
+
+| corpus statistic | furniture-driven | **architecture-driven** | real |
+|---|---|---|---|
+| region fraction, median | 0.410 | **0.278** | 0.271 |
+| Wasserstein against real | 0.128 | **0.022** | — |
+| lift rate | 49.8 % | **52.7 %** | — |
+| ground truth, all five failures | clean | **clean** | — |
+| M1 target recoverable | 85.0 % | **91.2 %** | — |
+
+Wasserstein against the real distribution has gone 0.164 → 0.099 → **0.022**
+across the three corpus versions.
+
+A landing-strip clearing pass was tried in the same round and **reverted**: it
+widens the transition from 1.9 m to 2.8 m against a real 2.9, but halves the
+yield and shoves objects into neighbouring tiers, taking the ground-truth
+violation rate from 0.015 to 0.44. Transition width remains the one corpus
+statistic still off. The same round fixed a real defect: the ground-truth filter
+had been checking four of the five failure modes, missing `embedded`.
+
+### The out-of-distribution gap has essentially closed
+
+On the 72 real MP3D-Elev fields, `ours` between round 3 and round 6:
+
+| metric | R3 | **R6** | |
+|---|---|---|---|
+| overhang | 0.077 | **0.017** | −78 % |
+| straddling | 0.048 | **0.019** | −60 % |
+| wrong tier | 0.057 | **0.017** | −70 % |
+| any violation (scene) | 0.569 | **0.250** | −56 % |
+| flatten, for comparison | 0.250 | 0.208 | |
+
+Round 3 read 0.681 against flatten's 0.306. It now reads 0.250 against 0.208,
+and `ours` **beats** flatten on straddling (0.019 vs 0.023) while placing 1.28
+objects per scene on the raised floor against flatten's 0.00.
+
+## Round 6 — M1, and the first end-to-end result
+
+Every number before this conditioned on a field that was given. M1
+(`elevate3d/gen/field.py`, `field_model.py`, 3.5 M parameters) generates it: a
+program label, an interval box in the room's principal frame, and a rise. The
+architecture-driven rule is what made that small enough to predict — a region is
+now a rectangle, not an arbitrary polygon.
+
+Its targets are *recovered* from the corpus rather than recorded during
+generation, so no rebuild was needed and a reader can recompute them from the
+released data; recovery round-trips at region IoU **1.000** for the 91 % of
+regions that are rectangles in the room frame. The flat arm of each pair
+supplies the negatives, so the model learns that most rooms get nothing.
+
+| setting | tier precision | tier use, obj/scene | elevation F1 |
+|---|---|---|---|
+| ground truth | 1.000 | 2.31 | 1.000 |
+| given field · **ours** | 0.874 | 1.77 | **0.817** |
+| given field · +bias | 0.863 | 1.94 | 0.852 |
+| given field · per-tier | 0.879 | 4.54 | 0.935 |
+| given field · flatten | 0.000 | 0.00 | 0.000 |
+| **end to end · M1 + M2** | 0.719 | 1.17 | **0.594** |
+
+M1 proposes an elevation for 60 % of rooms and refuses on 40 %, leaving those
+flat. End to end costs about a quarter of the F1 against a given field, which is
+the price of having to decide *whether* and *where* as well as how to lay out.
+
+Two caveats. The F1 in this table was recomputed offline: the evaluation
+returned zero for the end-to-end run because recall needs a ground-truth
+reference and that run has no `gt` arm — now fixed, and its absence is announced
+rather than silently scored as zero. And `per-tier` still tops F1 everywhere
+while obstructing 61–73 % of the steps, so F1 has to be read beside step
+blocking, not instead of it.
+
 ## A published baseline: why not PhyScene
 
 PhyScene's output space is (x, y, θ) on one plane and it cannot take an
@@ -210,11 +288,13 @@ directly, not to strengthen the argument.
 
 ## Next
 
-1. **An architecture-driven region rule.** The measurements above say the region
-   should be sized by the room's structure, not by the furniture group that ends
-   up on it. This is the single change that would move region size, transition
-   width and the narrow-ring artefact together.
-2. **Calibrate the stop head** rather than sweeping a threshold; the sweep
-   bottoms out at 0.05, which says the head is miscalibrated.
-3. **Put the elevation F1 in the objective**, not only in the report. It now
-   measures the abstention gap; nothing yet closes it during training.
+1. **Put the elevation F1 in the objective**, not only in the report. It measures
+   the abstention gap and `ours` still under-uses the elevation against ground
+   truth (1.77 against 2.31 objects per scene); nothing closes that in training.
+2. **Improve M1's program head.** It is at 0.53 accuracy over five classes — the
+   box and rise heads fit well (NLL −6.8 and −0.5) but deciding *whether* a room
+   gets an elevation, and which kind, is where the end-to-end loss sits.
+3. **Transition width**, the last corpus statistic off. Clearing the landing has
+   to be part of placement rather than a post-hoc shove; as a shove it costs
+   ground-truth cleanliness.
+4. **Calibrate the stop head** rather than sweeping a threshold.

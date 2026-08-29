@@ -29,36 +29,34 @@ records the first end-to-end numbers, including the negative ones.
 
 ## State
 
-Four rounds, each acting on what the previous one measured.
+Six rounds, each acting on what the previous one measured. It is now a two-stage
+system: **M1** (3.5 M) generates the elevation field, **M2** (27.8 M) lays out
+on it.
 
-In distribution, tier conditioning cuts every placement violation to a third or
-a sixth of the flat baseline, and object counts and raised-floor use both match
-ground truth. Scoring tread occupancy in the shared sampler cut step blocking
-from 0.65 to **0.19**; calibrating the stop threshold fixed the over-placement
-the larger corpus introduced.
+**Round 4 refuted rounds 2-3's proposed next step** — the region fraction was
+stuck because the region was derived from furniture, not because 3D-FRONT's
+rooms are small. **Round 5 acted on that**: the region is now taken off a wall
+at a depth drawn from the measured distribution.
 
-**Round 3 corrects round 2.** A scale ablation (same corpus and sampler,
-round-1 training size) shows the out-of-distribution gain came from the sampler
-and the extra data, not from calibrating the generator's geometry.
+| corpus statistic | R1 | R3 | **R5** | real |
+|---|---|---|---|---|
+| region fraction | 0.46 | 0.41 | **0.278** | 0.271 |
+| Wasserstein | 0.164 | 0.099 | **0.022** | — |
 
-**Round 4 adds the metric three rounds kept asking for.** The flat baseline had
-posted the lowest violation rates by never placing an object on a non-datum
-tier, which no violation metric can see. `elevation_f1` — precision on the tier
-placements it does make, recall against how much of the elevation it uses —
-scores it **0.000** on both test sets, against 0.92 for ours in distribution.
+**The out-of-distribution gap has essentially closed.** On the 72 real
+MP3D-Elev fields, ours went from 0.569 to **0.250** any-violation between
+rounds 3 and 6 against flatten's 0.208, and now *beats* flatten on straddling
+while placing 1.28 objects per scene on the raised floor to flatten's 0.00.
 
-**Round 4 also refutes its own proposed next step.** Rounds 2–3 blamed two
-stuck corpus statistics on 3D-FRONT's small rooms and named a larger-room
-source as the fix. Retargeting into 34–49 m² rooms leaves the region fraction at
-0.354 (corpus: 0.35), and Infinigen's rooms have a median of 22.0 m² against
-3D-FRONT's 22.3. The cause is that the region is derived from furniture at all;
-real elevated floors are sized by architecture.
+**Round 6 is the first end-to-end result.** M1 proposes a field for 60 % of
+rooms and refuses on 40 %. Elevation F1: 0.817 with a given field, **0.594**
+end-to-end, 0.000 for the flat baseline.
 
-The tier-relative attention bias measured as having no effect across three
-rounds and two corpora and is off by default.
+The tier-relative attention bias measured as having no effect across every round
+and is off by default.
 
 `notes/W0_findings.md` records the dataset measurements, `notes/RESULTS.md` all
-four rounds including every negative result.
+six rounds including every negative result and every reverted change.
 
 ## Reproduce
 
