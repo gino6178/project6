@@ -170,13 +170,13 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);
   </div>
   <div>
     <span class="tag hold">同分布有效</span>
-    <h3>違規率砍半</h3>
-    <p>分區條件化把懸挑、跨層、錯層違規降到平面基準的一半，且高程層使用程度與 ground truth 吻合。</p>
+    <h3>違規率降到基準的三分之一</h3>
+    <p>分區條件化把懸挑、跨層、錯層違規降到平面基準的 1/3–1/6，物件數與高程層使用程度都與 ground truth 吻合。</p>
   </div>
   <div>
     <span class="tag no">真實場景仍未過</span>
     <h3>OOD 進步但排名未變</h3>
-    <p>校準後 OOD 違規率下降 24–71%，但平面基準仍以「完全不使用高程」的方式維持更低的違規率。注意力偏置在兩個語料庫上都無效。</p>
+    <p>三輪改進後平面基準仍以「完全不使用高程」的方式維持更低的違規率。規模消融顯示第二輪把 OOD 改善歸功於幾何校準是錯的 —— 主要來自取樣器與資料量。</p>
   </div>
 </div>
 
@@ -515,113 +515,146 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
 <section id="s8">
   <div class="sh"><span class="n">§8</span><h2>結果</h2></div>
   <div class="prose">
-    <p>兩輪。第一輪建立管線並得到混合結果；第二輪針對第一輪量到的東西動手。兩輪都列出來，因為第二輪只有對照第一輪才有意義。斜體是第一輪的 ours。</p>
+    <p>三輪。每一輪針對前一輪量到的東西動手，而第三輪<strong>修正了第二輪的一個錯誤歸因</strong>。</p>
   </div>
+
+  <div class="tw"><table>
+    <thead><tr><th>輪次</th><th>語料庫</th><th class="num">訓練房間</th><th>取樣器</th></tr></thead>
+    <tbody>
+      <tr><td>R1</td><td>未校準，5,792 對</td><td class="num">5,213</td><td>8 次重試、無階梯項、stop 固定 0.5</td></tr>
+      <tr><td>R2</td><td>已校準，14,782 對</td><td class="num">13,300</td><td>12 次重試、加階梯項、stop 固定 0.5</td></tr>
+      <tr><td>R3</td><td>已校準，14,782 對</td><td class="num">13,300</td><td>同 R2，stop 閾值經校準</td></tr>
+    </tbody>
+  </table></div>
 
   <h3>同分布：held-out FRONT-Elev，300 間</h3>
-  <div class="tw"><table>
-    <thead><tr><th>指標</th><th class="num">GT</th><th class="num">ours</th><th class="num">+bias</th><th class="num">flatten</th><th class="num">per-tier</th><th class="num">ours R1</th></tr></thead>
-    <tbody>
-      <tr><td>懸挑 F1a</td><td class="num">0.000</td><td class="num best">0.024</td><td class="num">0.023</td><td class="num">0.054</td><td class="num worst">0.064</td><td class="num">0.032</td></tr>
-      <tr><td>嵌入 F1b</td><td class="num">0.000</td><td class="num best">0.033</td><td class="num">0.038</td><td class="num">0.048</td><td class="num worst">0.071</td><td class="num">0.031</td></tr>
-      <tr><td>跨層 F2</td><td class="num">0.000</td><td class="num best">0.037</td><td class="num">0.039</td><td class="num">0.061</td><td class="num worst">0.092</td><td class="num">0.039</td></tr>
-      <tr><td>錯層 F5</td><td class="num">0.000</td><td class="num best">0.012</td><td class="num">0.011</td><td class="num">0.045</td><td class="num worst">0.049</td><td class="num">0.010</td></tr>
-      <tr><td><strong>擋階 F3</strong>（場景）</td><td class="num">0.000</td><td class="num best">0.213</td><td class="num">0.213</td><td class="num">0.330</td><td class="num worst">0.877</td><td class="num worst">0.653</td></tr>
-      <tr><td>淨空 F4</td><td class="num">0.000</td><td class="num">0.007</td><td class="num best">0.005</td><td class="num worst">0.012</td><td class="num">0.009</td><td class="num">0.007</td></tr>
-      <tr><td>任一違規（場景）</td><td class="num">0.003</td><td class="num">0.580</td><td class="num best">0.550</td><td class="num">0.710</td><td class="num worst">0.950</td><td class="num">0.763</td></tr>
-      <tr class="rule"><td><strong>高程層使用（面積）</strong></td><td class="num">0.457</td><td class="num best">0.429</td><td class="num">0.427</td><td class="num worst">0.097</td><td class="num">0.450</td><td class="num">0.356</td></tr>
-      <tr><td><strong>高程層使用（物件／場景）</strong></td><td class="num">3.56</td><td class="num">4.27</td><td class="num best">3.88</td><td class="num worst">0.00</td><td class="num">5.22</td><td class="num">3.60</td></tr>
-      <tr class="rule"><td>CCN 掃地機器人</td><td class="num">0.676</td><td class="num best">0.576</td><td class="num">0.565</td><td class="num worst">0.300</td><td class="num">0.433</td><td class="num">0.501</td></tr>
-      <tr><td>CCN 輪椅</td><td class="num">0.699</td><td class="num">0.562</td><td class="num best">0.568</td><td class="num worst">0.264</td><td class="num">0.502</td><td class="num">0.505</td></tr>
-      <tr><td>物件數／場景</td><td class="num">9.87</td><td class="num">11.92</td><td class="num">10.88</td><td class="num">11.56</td><td class="num">16.09</td><td class="num">9.48</td></tr>
-    </tbody>
-  </table></div>
-
-  <h3>階梯淨空：第二輪最大的單一勝利</h3>
   <div class="prose">
-    <p>第一輪最糟的數字是擋階：0.65 的生成場景擋住通道，GT 是 0.000，而且沒有任何方法處理它。拒絕成本會算分區外溢與物件重疊，但完全不知道踏階必須保持可走。把踏階佔用加進去、權重設為物件重疊的三倍之後：</p>
+    <p><code>ours-small</code> 是同一個語料庫、同一個取樣器，但訓練房間數退回 R1 的規模 —— 用來把「資料量」與其他因素分開。</p>
   </div>
   <div class="tw"><table>
-    <thead><tr><th>擋階率</th><th class="num">第一輪</th><th class="num">第二輪</th></tr></thead>
+    <thead><tr><th>指標</th><th class="num">GT</th><th class="num">ours</th><th class="num">ours-small</th><th class="num">+bias</th><th class="num">flatten</th><th class="num">per-tier</th></tr></thead>
     <tbody>
-      <tr><td>同分布</td><td class="num">0.653</td><td class="num best">0.213</td></tr>
-      <tr><td>分布外</td><td class="num">0.542</td><td class="num best">0.264</td></tr>
+      <tr><td>懸挑 F1a</td><td class="num">0.000</td><td class="num best">0.022</td><td class="num">0.038</td><td class="num">0.022</td><td class="num">0.058</td><td class="num worst">0.060</td></tr>
+      <tr><td>嵌入 F1b</td><td class="num">0.000</td><td class="num best">0.030</td><td class="num">0.046</td><td class="num">0.032</td><td class="num">0.063</td><td class="num worst">0.069</td></tr>
+      <tr><td>跨層 F2</td><td class="num">0.000</td><td class="num best">0.036</td><td class="num">0.048</td><td class="num">0.038</td><td class="num">0.076</td><td class="num worst">0.092</td></tr>
+      <tr><td>錯層 F5</td><td class="num">0.000</td><td class="num best">0.008</td><td class="num">0.011</td><td class="num">0.009</td><td class="num worst">0.050</td><td class="num">0.044</td></tr>
+      <tr><td>擋階 F3（場景）</td><td class="num">0.000</td><td class="num">0.187</td><td class="num">0.277</td><td class="num best">0.160</td><td class="num">0.310</td><td class="num worst">0.867</td></tr>
+      <tr><td>任一違規（場景）</td><td class="num">0.003</td><td class="num">0.450</td><td class="num">0.643</td><td class="num best">0.443</td><td class="num">0.693</td><td class="num worst">0.943</td></tr>
+      <tr class="rule"><td><strong>高程層使用（面積）</strong></td><td class="num">0.457</td><td class="num best">0.389</td><td class="num">0.385</td><td class="num">0.387</td><td class="num worst">0.087</td><td class="num">0.414</td></tr>
+      <tr><td><strong>高程層使用（物件／場景）</strong></td><td class="num">3.56</td><td class="num best">3.32</td><td class="num">3.23</td><td class="num">3.18</td><td class="num worst">0.00</td><td class="num">4.58</td></tr>
+      <tr class="rule"><td>CCN 掃地機器人</td><td class="num">0.676</td><td class="num best">0.598</td><td class="num">0.551</td><td class="num">0.580</td><td class="num worst">0.324</td><td class="num">0.492</td></tr>
+      <tr><td>CCN 輪椅</td><td class="num">0.699</td><td class="num best">0.602</td><td class="num">0.532</td><td class="num">0.576</td><td class="num worst">0.277</td><td class="num">0.534</td></tr>
+      <tr><td>物件數／場景</td><td class="num">9.87</td><td class="num">9.16</td><td class="num">9.04</td><td class="num">8.50</td><td class="num">9.65</td><td class="num worst">13.66</td></tr>
     </tbody>
   </table></div>
-  <div class="prose">
-    <p>同分布降三分之二、分布外減半。這是唯一效果毫無歧義的改動 —— 取樣器四種方法共用，四種方法都改善了。</p>
-  </div>
-
-  <figure>
-    <img src="assets/samples_frontelev.png" alt="四種方法在同一批房間上的生成結果，違規物件以外框標示">
-    <figcaption><b>圖 2．</b>同一批房間、四種方法。外框標示違規物件（紅=懸挑、紫=跨層、橘=錯層）。相對第一輪，被標記的物件明顯變少，紅色的階梯線周圍也清出來了。</figcaption>
-  </figure>
 
   <h3>分布外：MP3D-Elev，72 間真實房</h3>
   <div class="tw"><table>
-    <thead><tr><th>指標</th><th class="num">ours</th><th class="num">+bias</th><th class="num">flatten</th><th class="num">per-tier</th><th class="num">ours R1</th></tr></thead>
+    <thead><tr><th>指標</th><th class="num">ours</th><th class="num">ours-small</th><th class="num">+bias</th><th class="num">flatten</th><th class="num">per-tier</th></tr></thead>
     <tbody>
-      <tr><td>懸挑 F1a</td><td class="num">0.073</td><td class="num worst">0.077</td><td class="num best">0.015</td><td class="num">0.055</td><td class="num">0.096</td></tr>
-      <tr><td>嵌入 F1b</td><td class="num">0.018</td><td class="num worst">0.025</td><td class="num">0.014</td><td class="num best">0.008</td><td class="num">0.063</td></tr>
-      <tr><td>跨層 F2</td><td class="num">0.046</td><td class="num worst">0.052</td><td class="num best">0.015</td><td class="num">0.042</td><td class="num">0.088</td></tr>
-      <tr><td>錯層 F5</td><td class="num">0.045</td><td class="num worst">0.056</td><td class="num best">0.007</td><td class="num">0.028</td><td class="num">0.079</td></tr>
-      <tr><td>擋階 F3（場景）</td><td class="num">0.264</td><td class="num">0.236</td><td class="num best">0.083</td><td class="num worst">0.667</td><td class="num">0.542</td></tr>
-      <tr><td>任一違規（場景）</td><td class="num">0.722</td><td class="num">0.694</td><td class="num best">0.306</td><td class="num worst">0.764</td><td class="num">0.889</td></tr>
-      <tr class="rule"><td><strong>高程層使用（面積）</strong></td><td class="num">0.292</td><td class="num">0.296</td><td class="num worst">0.018</td><td class="num best">0.384</td><td class="num">0.337</td></tr>
-      <tr><td><strong>高程層使用（物件／場景）</strong></td><td class="num">3.40</td><td class="num">3.31</td><td class="num worst">0.00</td><td class="num best">4.85</td><td class="num">3.64</td></tr>
-      <tr class="rule"><td>CCN 掃地機器人</td><td class="num">0.567</td><td class="num">0.617</td><td class="num worst">0.498</td><td class="num best">0.662</td><td class="num">0.636</td></tr>
+      <tr><td>懸挑 F1a</td><td class="num">0.091</td><td class="num worst">0.102</td><td class="num">0.088</td><td class="num best">0.016</td><td class="num">0.055</td></tr>
+      <tr><td>嵌入 F1b</td><td class="num">0.008</td><td class="num">0.024</td><td class="num worst">0.036</td><td class="num">0.029</td><td class="num best">0.006</td></tr>
+      <tr><td>跨層 F2</td><td class="num">0.050</td><td class="num">0.055</td><td class="num worst">0.074</td><td class="num best">0.022</td><td class="num">0.045</td></tr>
+      <tr><td>錯層 F5</td><td class="num">0.040</td><td class="num worst">0.060</td><td class="num">0.051</td><td class="num best">0.016</td><td class="num">0.026</td></tr>
+      <tr><td>擋階 F3（場景）</td><td class="num">0.167</td><td class="num">0.181</td><td class="num">0.236</td><td class="num best">0.083</td><td class="num worst">0.611</td></tr>
+      <tr><td>任一違規（場景）</td><td class="num">0.681</td><td class="num">0.708</td><td class="num">0.611</td><td class="num best">0.306</td><td class="num worst">0.750</td></tr>
+      <tr class="rule"><td><strong>高程層使用（面積）</strong></td><td class="num">0.237</td><td class="num">0.264</td><td class="num">0.246</td><td class="num worst">0.034</td><td class="num best">0.344</td></tr>
+      <tr><td><strong>高程層使用（物件／場景）</strong></td><td class="num">2.58</td><td class="num">2.63</td><td class="num">2.49</td><td class="num worst">0.00</td><td class="num best">3.96</td></tr>
+      <tr class="rule"><td>CCN 掃地機器人</td><td class="num">0.641</td><td class="num">0.608</td><td class="num best">0.692</td><td class="num worst">0.552</td><td class="num">0.693</td></tr>
     </tbody>
   </table></div>
 
+  <h3>停止閾值校準 —— 修掉第二輪引入的過度放置</h3>
   <div class="prose">
-    <p>校準後每一項 OOD 違規率都下降：跨層 −48%、嵌入 −71%、錯層 −43%、懸挑 −24%。但語料庫同時從 5,792 長到 14,782，所以這是<strong>校準與規模一起</strong>的結果，不是校準單獨的。要分開需要一次「規模相同但未校準」的對照，還沒做。</p>
+    <p>第二輪每場景放 11.92 個物件，GT 是 9.87；高程層 4.27 對 3.56。更大的語料庫讓模型更願意繼續放，而固定 0.5 的閾值沒有理由剛好落在對的數字上。閾值是一個純量、目標明確，所以改成在 held-out 上針對 GT 物件數掃描 —— <strong>每個方法各掃一次</strong>，沒有人被偏袒。MP3D-Elev 沿用同分布掃出來的閾值，因為在測試集上校準就是作弊。</p>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th></th><th class="num">R2</th><th class="num">R3</th><th class="num">GT</th></tr></thead>
+    <tbody>
+      <tr><td>物件數／場景</td><td class="num">11.92</td><td class="num best">9.16</td><td class="num">9.87</td></tr>
+      <tr><td>高程層物件／場景</td><td class="num">4.27</td><td class="num best">3.32</td><td class="num">3.56</td></tr>
+      <tr><td>任一違規（場景）</td><td class="num">0.580</td><td class="num best">0.450</td><td class="num">0.003</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>掃出來的閾值很低 —— <code>ours</code> 落在 0.05，也就是掃描範圍的底部。這說明 stop 頭本身校準不良，只有很激進的閾值才能達到正確的物件數。把 stop 頭訓練得校準，會比掃一個閾值更好。</p>
+  </div>
+
+  <h3>階梯淨空：仍是最大的單一勝利</h3>
+  <div class="tw"><table>
+    <thead><tr><th>擋階率</th><th class="num">R1</th><th class="num">R3</th></tr></thead>
+    <tbody>
+      <tr><td>同分布</td><td class="num">0.653</td><td class="num best">0.187</td></tr>
+      <tr><td>分布外</td><td class="num">0.542</td><td class="num best">0.167</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>效果毫無歧義，因為取樣器四種方法共用，四種方法都改善了。</p>
   </div>
 
   <div class="note neg">
-    <span class="lbl">排名沒有改變，原因不是準度</span>
-    <p>flatten 在兩個測試集上仍然放 <strong>0.00 個</strong>物件在非基準層，只覆蓋 1.8% 的高程樓板（GT 是 45.7%）。每一項違規都是在講物件放錯分區，而它從不把物件放上去。我們的絕對數字改善了 24–71%，排名卻沒動，因為分開兩者的不是準度而是<strong>願不願意使用高程</strong>。圖 3 直接看得到：四間房裡有兩間，flatten 欄的高程層完全空著。</p>
+    <span class="lbl">第三輪修正了第二輪的歸因</span>
+    <p>第二輪宣稱 OOD 的改善來自「校準生成器的幾何」。<code>ours-small</code>（同語料庫、同取樣器，訓練規模退回 R1）顯示<strong>大部分不是</strong>。</p>
+    <p>固定語料庫與取樣器，單看規模（ours-small → ours）：懸挑同分布 0.038→0.022（−43%），OOD 只有 0.102→0.091（−10%）；任一違規同分布 0.643→0.450（−30%），OOD 只有 −4%。而在 R1 的訓練規模下，校準語料庫的 OOD 懸挑是 0.102，R1 是 0.096 —— <strong>並沒有比較好</strong>。</p>
+    <p>所以幾何校準沒有買到第二輪歸功於它的 OOD 改善；那主要來自取樣器的階梯項與更多資料。校準仍然值得做 —— 它拿掉了三個我發明的參數、讓語料庫的邊際分布站得住腳 —— 但它該被報告成方法上的整理，不是指標增益的原因。</p>
+  </div>
+
+  <h3>注意力偏置：null 第三次成立</h3>
+  <div class="prose">
+    <p><code>ours</code> 與 <code>+bias</code> 在三輪、兩個語料庫、兩個測試集上都在噪聲範圍內。預設關閉，應該從論文拿掉。</p>
   </div>
 
   <figure>
-    <img src="assets/samples_mp3d.png" alt="三種方法在真實 MP3D-Elev 房間上的生成結果">
-    <figcaption><b>圖 3．</b>MP3D-Elev 的真實高程場 —— 分區多邊形、高度與樓梯全部來自真實 Matterport 建築的標註，生成器沒有參與。第三與第四列的 flatten 欄，整個高程層是空的。</figcaption>
+    <img src="assets/samples_frontelev.png" alt="四種方法在同一批房間上的生成結果">
+    <figcaption><b>圖 2．</b>同一批房間、四種方法。外框標示違規物件（紅=懸挑、紫=跨層、橘=錯層）。</figcaption>
   </figure>
 
-  <h3>注意力偏置：null 複製了</h3>
-  <div class="prose">
-    <p><code>ours</code> 與 <code>+bias</code> 在兩個測試集的每一項上仍然在噪聲範圍內，這次是在 2.55 倍大的語料庫上。兩個獨立語料庫、同一個答案 —— 這個模組應該從論文裡拿掉。</p>
-  </div>
+  <figure>
+    <img src="assets/samples_mp3d.png" alt="三種方法在真實 MP3D-Elev 房間上的生成結果">
+    <figcaption><b>圖 3．</b>MP3D-Elev 的真實高程場。第三與第四列的 flatten 欄，整個高程層是空的 —— 這就是下面那段的視覺版本。</figcaption>
+  </figure>
 
-  <h3>仍然成立而且不受歡迎的三件事</h3>
-  <div class="prose">
-    <ul>
-      <li><strong>我們現在放太多了。</strong>每場景 11.92 個物件對 GT 的 9.87，高程層 4.27 對 3.56。第一輪是吻合的（9.48 與 3.60），第二輪不是 —— 更大的語料庫讓模型更願意繼續放。<code>ccn_spread</code> 0.391 對 GT 0.313 說的是同一件事：我們的房間比真實的更堵。</li>
-      <li><strong>離乾淨還很遠。</strong>0.58 的生成場景至少含一個違規，GT 是 0.003。</li>
-      <li><strong>兩個校準目標沒有動。</strong>過渡寬度 1.90 m 對真實 2.93 m，區域佔比 0.35 對真實 0.27。兩者都被 3D-FRONT 本身限制住：它的房間中位 22 m² 對真實的 34 m²，而從家具群長出來的區域在小房間裡不可能佔比很低。後果在圖 1 的第二、六列看得到。</li>
-    </ul>
+  <div class="note neg">
+    <span class="lbl">三輪改進沒有動搖的一件事</span>
+    <p>flatten 在兩個測試集上仍然放 <strong>0.00 個</strong>物件在非基準層，只覆蓋 3.4% 的高程樓板（GT 45.7%）。它的低違規率是「完全不使用高程」換來的。每一項違規都在講物件放錯分區，而它從不把物件放上去 —— 分開我們與它的不是準度，是<strong>願不願意使用高程</strong>。目前的目標函數只懲罰「用錯」，沒有任何一項獎勵「用對」。</p>
   </div>
 </section>
 
 <section id="s9">
-  <div class="sh"><span class="n">§9</span><h2>已知缺陷與下一步</h2></div>
+  <div class="sh"><span class="n">§9</span><h2>缺陷與下一步</h2></div>
 
   <h3>誠實的現況</h3>
   <div class="prose">
     <ul>
-      <li><strong>絕對品質不足。</strong>76% 的生成場景至少含一個違規，GT 是 1%。圖 2 也看得出擺放鬆散重疊。5.2k 訓練房間太少，語料庫是瓶頸。</li>
-      <li><strong>循環性只解了一半。</strong>落差幅度來自真實資料、區域形狀來自真實家具群，但高程區的<em>位置</em>與分層指派規則仍然是我寫的。MP3D-Elev 打破了「高程場」這一半的循環，沒有打破「佈局規則」那一半。</li>
-      <li><strong>分段常數是刻意的取捨。</strong>涵蓋下沉區、高台、錯層、夾層四類最常見的住宅高程；坡道以 <code>ramp</code> 型別近似；連續曲面樓板留給 future work。</li>
-      <li><strong>尚未與已發表方法直接對照。</strong>PhyScene 權重只有 livingroom，而且它吃不了高程場，接上去等於再做一次 flatten adaptation —— 會同時改變架構與分區知識兩個變因，證據力比目前的受控消融弱。</li>
+      <li><strong>絕對品質仍然不足。</strong>0.45 的生成場景至少含一個違規，GT 是 0.003。</li>
+      <li><strong>循環性只解了一半。</strong>落差幅度、區域大小與貼牆比例都來自真實量測，MP3D-Elev 的高程場完全不是生成器產生的；但高程區的<em>位置</em>與分層指派規則仍然是我寫的。</li>
+      <li><strong>兩個語料庫統計量卡住。</strong>過渡寬度 1.90 m 對真實 2.93 m，區域佔比 0.35 對真實 0.27。兩者都被 3D-FRONT 的房間尺寸限制住（中位 22 m² 對真實 34 m²）。</li>
+      <li><strong>stop 頭校準不良。</strong>掃出來的最佳閾值落在掃描範圍底部。</li>
+      <li><strong>分段常數是刻意的取捨。</strong>涵蓋下沉區、高台、錯層、夾層；坡道以 <code>ramp</code> 型別近似；連續曲面樓板留給 future work。</li>
     </ul>
+  </div>
+
+  <h3>更大的房間來源：評估完成，未實作</h3>
+  <div class="prose">
+    <p>兩個卡住的統計量都追溯到 3D-FRONT 的房間尺寸。原先寫的出路是擴充 Infinigen Indoors。這個評估現在是具體的而非臆測 —— Infinigen 1.15.5 在 Python 3.11 下裝得起來（<code>bpy</code> 4.2.0，約 3 GB），約束圖建得起來，floorplan solver 跑得動。兩個發現：</p>
+    <ul>
+      <li><strong>加高程 primitive 是深度手術。</strong>房間是 shapely 多邊形按常數 <code>constants.wall_height</code> 擠出，地板網格在 <code>room/solidifier.py</code> 由 2D 輪廓生成。要有分區高度得動 <code>state_def</code>、<code>solidifier</code>、<code>room/solver.py</code> 的退火 move、以及物件求解器的 <code>SupportedBy</code> —— 別人程式庫的四個模組，之後還要驗證結果。</li>
+      <li><strong>就算只拿它當房型來源也是一條管線，不是一個補丁。</strong>floorplan 求解是模擬退火，每棟要數分鐘；解出來的房間還得用 3D-FRONT 佈局重定向（project5 做的正是這件事）來佈置，然後才能套用高程程式。</li>
+    </ul>
+    <p>兩者都是多日工程，是正確的下一步但不在這一輪的範圍內。中間那個便宜選項 —— 把相鄰的 3D-FRONT 房間合併成開放空間 —— 測過並否決了：全 dataset 只能得到約 350 個可用房間，而且多數相鄰配對是「臥室 + 客廳」這種建築上不成立的組合。</p>
+  </div>
+
+  <h3>為什麼不接 PhyScene</h3>
+  <div class="prose">
+    <p>PhyScene 的輸出空間是單一平面上的 (x, y, θ)，吃不了高程場，所以任何適配都是第二個 flatten baseline。它與現有的 <code>flatten</code> 會同時差在架構<em>與</em>分區知識兩件事，證據力比已經跑完的受控消融更弱；它釋出的權重也只涵蓋客廳。值得跑來正面回答審稿人的提問，不是用來加強論證。</p>
   </div>
 
   <h3>下一步，按期望價值排序</h3>
   <div class="prose">
     <ol>
-      <li><strong>限制物件數</strong>或校準 stop 頭。過度放置是第二輪才出現的，也最便宜。</li>
-      <li><strong>更大的房間來源。</strong>兩個卡住的統計量都追溯到 3D-FRONT 的房間尺寸。Infinigen Indoors 能生成任意房型且求解器本來就是階層式的，加一個高程 primitive 是明顯的出路 —— 這在 week 0 被延後了。</li>
-      <li><strong>把規模與校準分開</strong>：跑一次「同樣大小但未校準」的語料庫，才能把 OOD 的改善歸因。</li>
-      <li><strong>已發表方法的對照。</strong>PhyScene 吃不了高程場，任何適配都是第二個 flatten；只有為了正面回答審稿人才值得做，而且會同時改變兩個變因。</li>
+      <li><strong>把 stop 頭訓練得校準</strong>，而不是掃一個閾值。</li>
+      <li><strong>更大的房間來源</strong>，範圍如上。</li>
+      <li><strong>關掉「拒絕使用」這個缺口。</strong>目前的目標函數只懲罰「把物件放錯分區」，沒有任何一項獎勵「正確地使用高程」。高程層使用率把這個缺口報出來了，但沒有東西去關它 —— 這是三輪改進都沒有動搖 flatten 排名的根本原因。</li>
     </ol>
   </div>
 </section>

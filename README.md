@@ -29,22 +29,29 @@ records the first end-to-end numbers, including the negative ones.
 
 ## State
 
-Two rounds. In distribution, tier conditioning roughly halves every placement
-violation against the flat baseline and is the only method whose use of the
-raised floor matches ground truth.
+Three rounds, each acting on what the previous measured.
 
-Round 2 acted on what round 1 measured. Scoring tread occupancy in the sampler
-cut step blocking from 0.65 to **0.21** in distribution and 0.54 to **0.26** out
-of it — the largest single win, and it applies to every method since the sampler
-is shared. Calibrating the generator's geometry against real homes, together
-with a 2.55x larger corpus, cut every out-of-distribution violation rate by
-24–71 %.
+In distribution, tier conditioning cuts every placement violation to a third or
+a sixth of the flat baseline, and object counts and raised-floor use both match
+ground truth. Scoring tread occupancy in the shared sampler cut step blocking
+from 0.65 to **0.19**; calibrating the stop threshold fixed the over-placement
+that the larger corpus introduced.
 
-Still open: **the flat baseline keeps lower OOD violation rates by abstaining** —
-it places 0.00 objects on non-datum tiers and covers 1.8 % of the raised floor
-against a ground truth 45.7 %. The tier-relative attention bias measured as
-having no effect on two independent corpora and is off by default. See §8–§9 of
-the page.
+Round 3 **corrects an attribution round 2 got wrong**: a scale ablation (same
+corpus and sampler, round-1 training size) shows the out-of-distribution gain
+came from the sampler and the extra data, not from calibrating the generator's
+geometry. The calibration was still worth doing — it removed three invented
+parameters — but it is a methodological cleanup, not a metric gain.
+
+Still open: **the flat baseline keeps lower out-of-distribution violation rates
+by abstaining** — 0.00 objects on non-datum tiers, 3.4 % of the raised floor
+covered against a ground truth 45.7 %. Nothing in the objective rewards using
+the elevation correctly; it only punishes using it wrongly. The tier-relative
+attention bias measured as having no effect across three rounds and two corpora
+and is off by default.
+
+`notes/W0_findings.md` records the dataset measurements, `notes/RESULTS.md` all
+three rounds including the negative results and the Infinigen assessment.
 
 ## Reproduce
 

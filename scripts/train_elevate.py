@@ -132,6 +132,9 @@ def main():
                          "by default because it measured as having no effect")
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--limit-train", type=int, default=0,
+                    help="subsample the training split; used to separate the "
+                         "effect of corpus scale from corpus calibration")
     args = ap.parse_args()
 
     torch.manual_seed(args.seed)
@@ -141,6 +144,10 @@ def main():
 
     tr = ElevCorpus(args.corpus, arm=args.arm, split="train")
     va = ElevCorpus(args.corpus, arm=args.arm, split="val")
+    if args.limit_train and args.limit_train < len(tr):
+        rs = np.random.default_rng(args.seed)
+        keep = sorted(rs.choice(len(tr.recs), args.limit_train, replace=False))
+        tr.recs = [tr.recs[i] for i in keep]
     print(f"train {len(tr)}  val {len(va)}  device {dev}", flush=True)
 
     dtr = DataLoader(tr, batch_size=args.bs, shuffle=True, drop_last=True,
