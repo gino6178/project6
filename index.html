@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elevate3D — 非平坦樓板的室內場景生成</title>
+<meta name="description" content="project6 (Elevate3D)：把下沉客廳、榻榻米高台、錯層與室內夾層當成生成標的。高程場形式化、支撐樹參數化、FRONT-Elev 語料庫、MP3D-Elev 真實測試集與第一組端到端結果。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%93%90%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#F2F5F6; --surface:#FFFFFF; --sunk:#E7ECEE;
+  --ink:#141A1D; --muted:#56646A; --faint:#879499;
+  --line:#D5DEE1; --line-strong:#B4C1C6;
+  --accent:#15617E; --accent-soft:#DCEAF0;
+  --signal:#8F6014; --signal-soft:#F4E9D3;
+  --good:#2C6A4C; --bad:#A33A2E; --dead:#879499;
+  --shadow:0 1px 2px rgba(20,26,29,.05), 0 8px 24px -16px rgba(20,26,29,.28);
+  --disp:"Bricolage Grotesque","Archivo",-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
+  --body:"Archivo",-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ground:#0C1114; --surface:#131A1E; --sunk:#0F1619;
+  --ink:#E3EAED; --muted:#94A3AA; --faint:#6C7A82;
+  --line:#212C31; --line-strong:#314047;
+  --accent:#5FB4D4; --accent-soft:#123039;
+  --signal:#D3A254; --signal-soft:#2E2412;
+  --good:#61B189; --bad:#D4796B; --dead:#6C7A82;
+  --shadow:0 1px 2px rgba(0,0,0,.45), 0 8px 24px -16px rgba(0,0,0,.85);
+}}
+:root[data-theme="dark"]{
+  --ground:#0C1114; --surface:#131A1E; --sunk:#0F1619;
+  --ink:#E3EAED; --muted:#94A3AA; --faint:#6C7A82;
+  --line:#212C31; --line-strong:#314047;
+  --accent:#5FB4D4; --accent-soft:#123039;
+  --signal:#D3A254; --signal-soft:#2E2412;
+  --good:#61B189; --bad:#D4796B; --dead:#6C7A82;
+  --shadow:0 1px 2px rgba(0,0,0,.45), 0 8px 24px -16px rgba(0,0,0,.85);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+img,svg{max-width:100%}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--body);font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 26px 110px}
+.prose{max-width:74ch}
+
+/* masthead */
+.mast{border-bottom:2px solid var(--ink);padding:60px 0 26px;margin-bottom:8px;
+  display:grid;gap:18px}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint)}
+h1{font-family:var(--disp);font-weight:750;font-size:clamp(36px,6.5vw,58px);
+  line-height:1.04;letter-spacing:-.025em;margin:0;text-wrap:balance}
+.tagline{font-family:var(--disp);font-weight:500;font-size:clamp(16px,2.4vw,20px);
+  color:var(--muted);margin:0;max-width:52ch;line-height:1.5;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);
+  font-size:12px;color:var(--faint)}
+.meta a{color:var(--accent)}
+
+/* status band */
+.band{display:grid;gap:1px;grid-template-columns:repeat(3,1fr);background:var(--line);
+  border:1px solid var(--line);margin:32px 0 6px;box-shadow:var(--shadow)}
+@media (max-width:760px){.band{grid-template-columns:1fr}}
+.band>div{background:var(--surface);padding:20px;display:flex;flex-direction:column;gap:7px}
+.band .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase}
+.tag.ok{color:var(--good)} .tag.hold{color:var(--signal)} .tag.no{color:var(--bad)}
+.band h3{font-family:var(--disp);font-weight:650;font-size:17px;margin:0;line-height:1.3}
+.band p{margin:0;font-size:14.5px;color:var(--muted);line-height:1.6}
+
+/* toc */
+nav.toc{border:1px solid var(--line);background:var(--surface);padding:16px 20px;
+  margin:34px 0 6px;box-shadow:var(--shadow)}
+nav.toc ol{margin:0;padding-left:0;list-style:none;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:4px 22px}
+nav.toc li{font-size:14.5px;margin:0}
+nav.toc a{color:var(--ink);text-decoration:none;display:flex;gap:9px}
+nav.toc a:hover{color:var(--accent)}
+nav.toc .n{font-family:var(--mono);font-size:12px;color:var(--accent);flex:none}
+
+/* sections */
+section{padding-top:58px;scroll-margin-top:20px}
+.sh{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--line);
+  padding-bottom:10px;margin-bottom:24px}
+.sh .n{font-family:var(--mono);font-size:12.5px;color:var(--accent);flex:none;padding-top:3px}
+h2{font-family:var(--disp);font-weight:700;font-size:clamp(23px,3.5vw,29px);
+  letter-spacing:-.018em;margin:0;line-height:1.2;text-wrap:balance}
+h3{font-family:var(--disp);font-weight:650;font-size:19px;margin:34px 0 10px;line-height:1.32}
+h4{font-family:var(--disp);font-weight:650;font-size:15.5px;margin:24px 0 6px;line-height:1.4}
+p{margin:0 0 15px}
+ul,ol{margin:0 0 15px;padding-left:1.35em}
+li{margin-bottom:7px}
+li::marker{color:var(--faint)}
+strong{font-weight:650}
+code{font-family:var(--mono);font-size:.86em;background:var(--sunk);padding:.1em .38em;
+  border-radius:3px}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+pre{font-family:var(--mono);font-size:13px;line-height:1.75;background:var(--surface);
+  border:1px solid var(--line);padding:18px 20px;margin:22px 0;overflow-x:auto;
+  box-shadow:var(--shadow)}
+pre .c{color:var(--faint)}
+pre .k{color:var(--accent);font-weight:500}
+pre .s{color:var(--signal)}
+
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:15px 18px;margin:22px 0;font-size:15.5px;line-height:1.65}
+.note.warn{border-left-color:var(--signal);background:var(--signal-soft)}
+.note.neg{border-left-color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,var(--surface))}
+.note>:last-child{margin-bottom:0}
+.note .lbl{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+
+.tw{overflow-x:auto;margin:22px 0;border:1px solid var(--line);background:var(--surface);
+  box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);
+  vertical-align:top;line-height:1.5}
+thead th{font-family:var(--disp);font-weight:650;font-size:12px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted);background:var(--sunk);
+  border-bottom:1px solid var(--line-strong);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;
+  text-align:right;white-space:nowrap}
+td.best{color:var(--good);font-weight:600}
+td.worst{color:var(--bad)}
+tr.rule td{border-top:1px solid var(--line-strong)}
+
+figure{margin:30px 0}
+figure img{display:block;width:100%;border:1px solid var(--line);background:var(--surface)}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:10px;line-height:1.6}
+figcaption b{font-family:var(--disp);font-weight:650;color:var(--ink)}
+
+.grid2{display:grid;gap:1px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  background:var(--line);border:1px solid var(--line);margin:24px 0}
+.grid2>div{background:var(--surface);padding:16px 18px}
+.grid2 .k{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.05em}
+.grid2 .n{font-family:var(--disp);font-weight:650;font-size:15.5px;margin:4px 0 5px}
+.grid2 .d{font-size:14px;color:var(--muted);line-height:1.55}
+
+footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.8}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">project6 · 研究方法紀錄 · 2026-08-29</div>
+  <h1>Elevate3D</h1>
+  <p class="tagline">室內場景生成一直假設樓板是一個平面。下沉客廳、榻榻米高台、錯層與室內夾層不是。</p>
+  <div class="meta">
+    <span>3D-FRONT 6,813 棟 · 37,529 房</span>
+    <span>FRONT-Elev 5,792 對</span>
+    <span>MP3D-Elev 72 間真實房</span>
+    <span>27.8M 參數 · 單張 L40</span>
+  </div>
+</header>
+
+<div class="band">
+  <div>
+    <span class="tag ok">前提成立</span>
+    <h3>3D-FRONT 一間都沒有</h3>
+    <p>37,529 個房間，樓板高度變化為 0，最大落差 0.0000 m。真實 Matterport 掃描則有 75% 的建築存在樓層內高程變化。</p>
+  </div>
+  <div>
+    <span class="tag hold">同分布有效</span>
+    <h3>違規率砍半</h3>
+    <p>分區條件化把懸挑、跨層、錯層違規降到平面基準的一半，且高程層使用程度與 ground truth 吻合。</p>
+  </div>
+  <div>
+    <span class="tag no">真實場景未過</span>
+    <h3>OOD 沒有遷移</h3>
+    <p>在 72 個真實高程場上，我們在違規指標上沒有贏過平面基準。注意力偏置模組完全無效。</p>
+  </div>
+</div>
+
+<nav class="toc">
+  <ol>
+    <li><a href="#s1"><span class="n">§1</span>問題形式化</a></li>
+    <li><a href="#s2"><span class="n">§2</span>表示：支撐樹</a></li>
+    <li><a href="#s3"><span class="n">§3</span>FRONT-Elev 生成器</a></li>
+    <li><a href="#s4"><span class="n">§4</span>用真實資料校準</a></li>
+    <li><a href="#s5"><span class="n">§5</span>MP3D-Elev 測試集</a></li>
+    <li><a href="#s6"><span class="n">§6</span>評測指標</a></li>
+    <li><a href="#s7"><span class="n">§7</span>模型與訓練</a></li>
+    <li><a href="#s8"><span class="n">§8</span>結果</a></li>
+    <li><a href="#s9"><span class="n">§9</span>缺陷與下一步</a></li>
+    <li><a href="#s10"><span class="n">§10</span>復現</a></li>
+  </ol>
+</nav>
+
+<section id="s1">
+  <div class="sh"><span class="n">§1</span><h2>問題形式化：高程場</h2></div>
+  <div class="prose">
+    <p>現有工作把房間存成一個 2D 多邊形，物件狀態是 <code>(x, y, θ)</code>，<code>z</code> 恆為 0。這個假設在 3D-FRONT 上是<strong>字面意義</strong>的真：把全部 6,813 棟房子的 <code>Floor</code> mesh 三角面按高度累計面積，37,529 個房間的高度分佈全部是單一值，最大落差 0.0000 m，每個百分位都是 0。</p>
+    <p>本工作把房間樓板改成<strong>分段常數高程場</strong>：</p>
+  </div>
+
+<pre><span class="c"># 房間結構 = 外輪廓 + 分區高程 + 過渡元素</span>
+S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
+
+  P       <span class="c">⊂ ℝ²  房間外輪廓多邊形</span>
+  R<sub>k</sub>      <span class="c">⊂ P   第 k 個高程分區；互不重疊，∪R<sub>k</sub> = P（允許有洞）</span>
+  h<sub>k</sub>      <span class="c">∈ ℝ   該分區樓板高度，相對房間基準 ±0.000</span>
+  T       <span class="c">過渡元素 { (edge, kind, rise, run, n_tread) }</span>
+          <span class="c">kind ∈ { step, stair, ramp, ledge }</span>
+
+<span class="k">K = 1</span> <span class="c">⟹ 退化成現有所有方法的設定。本工作是嚴格泛化，不是新任務。</span>
+</pre>
+
+  <div class="prose">
+    <p><strong>分區允許有洞</strong>這件事比看起來重要：房間正中央的下沉客廳會讓基準層變成一個環，如果分區只能是簡單多邊形，基準層就必須與它所環繞的區域重疊。這個 bug 我踩過一次。</p>
+    <p>可通行性由每一階的高度決定，不是總落差 —— 0.45 m 分三階的樓梯，四足機器人上得去；0.45 m 的單一落差上不去。所以 <code>n_tread</code> 是欄位而不是衍生量。</p>
+  </div>
+</section>
+
+<section id="s2">
+  <div class="sh"><span class="n">§2</span><h2>表示：z 是導出的，不是預測的</h2></div>
+  <div class="prose">
+    <p>PhyScene 與 SPREAD 讓網路自由輸出絕對 <code>z</code>，再用可微 guidance 把浮空與穿透「修回去」。這代表浮空仍然存在於輸出空間裡，只是被懲罰。</p>
+    <p>這裡物件存的是<strong>它站在什麼上面</strong>與<strong>離那個面多高</strong>：</p>
+  </div>
+
+<pre>o<sub>i</sub> = ( c<sub>i</sub> , π(i) , x<sub>i</sub> , y<sub>i</sub> , Δz<sub>i</sub> , d<sub>i</sub> , θ<sub>i</sub> )
+
+  π(i)  <span class="c">支撐父節點 ∈ { 分區 R<sub>k</sub> } ∪ { 其他物件 o<sub>j</sub> } ∪ { wall, ceiling }</span>
+  z<sub>i</sub>    <span class="c">= top(π(i)) + Δz<sub>i</sub></span>   <span class="k">← 沿支撐樹前向計算，不是網路輸出</span>
+</pre>
+
+  <div class="note">
+    <span class="lbl">這條的實際後果</span>
+    <p>接觸誤差在表示上恆等於零。原提案裡的 <code>L_contact = Σ |z_i − (z_parent + h_parent)|</code> 不需要存在 —— 測試 <code>test_contact_is_exact_so_the_contact_loss_is_zero</code> 直接驗證它是 <code>0.0</code>。省掉一個超參數，也讓消融實驗變成在比表示而不是比損失權重。</p>
+  </div>
+
+  <div class="prose">
+    <p>把真實 3D-FRONT 場景轉進這個表示再解回來（K=1），可以量到一件有趣的事：</p>
+  </div>
+
+  <div class="tw"><table>
+    <thead><tr><th>3D-FRONT 物件狀態</th><th class="num">佔比</th></tr></thead>
+    <tbody>
+      <tr><td>與支撐面精確接觸</td><td class="num">66.4%</td></tr>
+      <tr><td>差距在 2 cm 以內</td><td class="num">18.9%</td></tr>
+      <tr><td>確實沉在支撐面之下（z &lt; −0.02）</td><td class="num">0.25%</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="prose">
+    <p>大家當 ground truth 在訓練的資料，三分之一的物件並沒有真的接觸支撐面。支撐樹參數化讓這些全部變成精確接觸。</p>
+  </div>
+</section>
+
+<section id="s3">
+  <div class="sh"><span class="n">§3</span><h2>FRONT-Elev：把真實佈局抬到真實高程程式上</h2></div>
+  <div class="prose">
+    <p>3D-FRONT 有 3,925 個 <code>CustomizedPlatform</code> mesh，但所有 layout parser 都只讀 <code>type == "Floor"</code>，所以沒人看過它們。即使讀了也沒用：這個型別是雜物袋（落差中位數 0.58 m、90 百分位 2.6 m，多半是降板天花與到頂櫃體），篩成合理地台後全 dataset 只剩幾百個，而且<strong>幾乎沒有家具站在上面</strong>。</p>
+    <p>結論是 3D-FRONT 提供的多高程監督為零。但它有 37,529 組專業設計的佈局 —— 真實房型輪廓、真實家具組合、真實資產。FRONT-Elev 保留這一切，只換掉底下的樓板。</p>
+  </div>
+
+  <h3>核心機制：高程區從家具群長出來，不是蓋上去</h3>
+  <div class="prose">
+    <p>真實的下沉客廳大小是由沙發對談群決定的，榻榻米高台是由床決定的。從家具群長出區域，既符合設計實務，也<strong>保證分區邊界不會切過任何物件</strong> —— 而「切過物件」正是評測要在生成結果裡抓的失敗（跨層），絕不能出現在 ground truth 裡。</p>
+  </div>
+
+<pre><span class="k">lift_scene</span>(flat_scene, rng):
+  1  <span class="s">選程式</span>     依房型與面積挑一個 program
+                sunken_lounge / tatami_platform / dining_tier / study_dais
+  2  <span class="s">取種子</span>     grounded 物件中屬於該 program seed_categories 者
+                （床這類 anchor 單獨一件即可成立）
+  3  <span class="s">初始矩形</span>   種子群足跡的軸對齊外接矩形（軸 = 房間最小外接矩形方向）
+  4  <span class="s">貼牆</span>       離牆 &lt; 0.55 m 的邊直接推到牆
+  5  <span class="s">吸附空隙</span>   每軸算「自由座標」（沒有任何 grounded 物件橫跨的位置），
+                邊界只往外吸附 —— 往外只會吞併更多物件，往內會擠掉種子
+  6  <span class="s">推移殘餘</span>   仍被切到的物件，沿最短方向推到完全在某一側（≤ 0.70 m），
+                推不動就放棄這個房間
+  7  <span class="s">切分基準層</span> datum = room − region；若被切成數塊，每塊各自成為一個
+                同高度的分區（真實的循環動線由此產生）
+  8  <span class="s">放階梯</span>     只在「踏階落地區沒有家具」的連續段上放，段內以 0.15 m 掃描
+                取最長淨空 run；找不到就放棄
+  9  <span class="s">取落差</span>     從真實分佈取樣（見 §4），量化成整數階
+ 10  <span class="s">指派支撐</span>   足跡 ≥50% 在 region 內 → region 層，否則歸最大重疊的基準塊；
+                物件對物件的支撐關係原樣保留
+ 11  <span class="s">GT 檢查</span>    用評測本身的程式碼跑一次，有任何違規就丟掉這個房間
+</pre>
+
+  <div class="note warn">
+    <span class="lbl">為什麼第 11 步不能省</span>
+    <p>一個 benchmark 的 ground truth 如果含有它自己要測的失敗，就比沒有 benchmark 更糟。加上這一步之後產出率從 22.8% 掉到 19.7%，是值得的交換；後續其他改進把產出率拉回 34%。</p>
+  </div>
+
+  <h3>產出</h3>
+  <div class="tw"><table>
+    <thead><tr><th>項目</th><th class="num">數值</th></tr></thead>
+    <tbody>
+      <tr><td>可解析房間（ReRoom 白名單與面積過濾後）</td><td class="num">17,007</td></tr>
+      <tr><td>抬升成功（平面 ↔ 多高程配對）</td><td class="num">5,792（34.1%）</td></tr>
+      <tr><td>物件數</td><td class="num">54,424</td></tr>
+      <tr><td>程式分佈</td><td class="num">榻榻米 2,807 · 下沉 2,509 · 書房台 261 · 餐廳台 215</td></tr>
+      <tr><td>分區數 K</td><td class="num">K=2: 5,000 · K=3: 778 · K=4: 14</td></tr>
+      <tr class="rule"><td>高程場通過 <code>validate()</code></td><td class="num">5,792 / 5,792</td></tr>
+      <tr><td>GT 違規率（懸挑／嵌入／跨層／錯層／擋階）</td><td class="num">全部 0.000</td></tr>
+      <tr><td>GT 違規率（淨空）</td><td class="num">0.00094</td></tr>
+    </tbody>
+  </table></div>
+
+  <figure>
+    <img src="assets/corpus_examples.png" alt="FRONT-Elev 語料庫抽樣：平面原版、抬升後的高程場、剖面與可達率">
+    <figcaption><b>圖 1．</b>語料庫抽樣。左為原始平面佈局，中為抬升後的高程場（紅線為階梯，S2／S3 標示踏階數），右為剖面與各 agent 的可達率。第二列是 L 形餐廳的 +0.34 m 高台，第三列是 L 形客廳的 −0.36 m 下沉區。</figcaption>
+  </figure>
+</section>
+
+<section id="s4">
+  <div class="sh"><span class="n">§4</span><h2>用真實資料校準生成器</h2></div>
+  <div class="prose">
+    <p>第一版語料庫的落差區間是我手挑的。拿真實住宅一比就發現偏窄也偏低，所以改成從實測分佈取樣。</p>
+    <p>真實落差來自 <a href="https://arxiv.org/abs/2512.02450">HouseLayout3D</a>（NeurIPS 2025）對 16 棟真實 Matterport3D 建築的結構標註。實體類別沒有標籤（每個實體的顏色是隨機的），所以用幾何分類：水平板塊、且上方一個房高處有足跡重疊的板塊者為樓板。同一樓層內兩塊在平面上相鄰但高度不同的樓板，即為一處高程變化。</p>
+  </div>
+
+  <div class="grid2">
+    <div><div class="k">建築數</div><div class="n">16</div><div class="d">HouseLayout3D 標註的真實 Matterport3D 掃描</div></div>
+    <div><div class="k">有樓層內高程變化</div><div class="n">12（75%）</div><div class="d">真實住宅四分之三存在，合成資料集為零</div></div>
+    <div><div class="k">相鄰異高樓板配對</div><div class="n">218</div><div class="d">扣除 &lt;10 cm 的標註抖動後 202 筆</div></div>
+    <div><div class="k">落差中位數</div><div class="n">0.38 m</div><div class="d">10／90 百分位 0.14 ／ 0.53</div></div>
+  </div>
+
+  <div class="prose">
+    <p>把這 202 筆存成 <code>elevate3d/data/rise_prior.json</code>，取樣時做 2 cm 平滑並依 program 夾限。校準前後：</p>
+  </div>
+
+  <div class="tw"><table>
+    <thead><tr><th>百分位</th><th class="num">真實</th><th class="num">校準前</th><th class="num">校準後</th></tr></thead>
+    <tbody>
+      <tr><td>10%</td><td class="num">0.198</td><td class="num">0.180</td><td class="num">0.180</td></tr>
+      <tr><td>50%</td><td class="num">0.384</td><td class="num">0.326</td><td class="num">0.370</td></tr>
+      <tr><td>90%</td><td class="num">0.526</td><td class="num">0.423</td><td class="num">0.498</td></tr>
+      <tr class="rule"><td>Wasserstein 距離</td><td class="num">—</td><td class="num">0.0708 m</td><td class="num best">0.0320 m</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note">
+    <p>這一步把「高程幅度」從我發明的參數變成量測值，直接削弱「你在學自己寫的規則」這個質疑的一部分。<strong>§8 會顯示這是唯一遷移得好的統計量</strong> —— 其他三個沒校準的都對不上，這本身就是下一步該做什麼的答案。</p>
+  </div>
+</section>
+
+<section id="s5">
+  <div class="sh"><span class="n">§5</span><h2>MP3D-Elev：真實高程場作為分布外測試</h2></div>
+  <div class="prose">
+    <p>FRONT-Elev 的高程場是程序化的，所以在它上面訓練又在它上面評測，等於部分在學生成器。MP3D-Elev 不是：分區多邊形、高度、樓梯全部來自真實建築的標註，<code>frontelev.py</code> 完全沒有參與。</p>
+    <p>它沒有家具標註，而這不成問題 —— 高程指標（懸挑、跨層、擋階、淨空、能力條件化可達率）是生成佈局的內在性質，不需要參考佈局來比對。這裡產出的是一組<strong>真實的、待佈置的房間</strong>，正是分布外測試需要的東西。</p>
+  </div>
+
+  <h3>建構條件</h3>
+  <div class="prose">
+    <ul>
+      <li>兩塊同樓層樓板，平面距離 ≤ 0.30 m，高度差 0.10–0.90 m</li>
+      <li>房間 = 兩塊足跡的聯集，面積 8–70 m²；上層取 <code>差集</code> 以保證兩層不重疊</li>
+      <li>共享邊界長度 ≥ 0.60 m（走得過去）</li>
+      <li>天花高度取自該樓板上方被標註的天花板</li>
+      <li>若該邊界附近有標註的真實樓梯且落差吻合，直接採用其踏階數；否則推斷為單階</li>
+      <li>必須通過 <code>ElevationField.validate()</code></li>
+    </ul>
+  </div>
+
+  <div class="tw"><table>
+    <thead><tr><th>項目</th><th class="num">數值</th></tr></thead>
+    <tbody>
+      <tr><td>房間數</td><td class="num">72</td></tr>
+      <tr><td>來源建築</td><td class="num">9</td></tr>
+      <tr><td>過渡型別</td><td class="num">真實樓梯 65 · 單階 7</td></tr>
+      <tr><td>落差 10／50／90 百分位</td><td class="num">0.23 · 0.387 · 0.515 m</td></tr>
+      <tr><td>面積 10／50／90 百分位</td><td class="num">17.2 · 34.2 · 55.5 m²</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note">
+    <p>順帶一提：原本計畫預算是下載 15 GB 的 Matterport3D RGB-D 並簽 EULA。HouseLayout3D 是 MIT 授權、無 gate、<strong>40 MB</strong>，而且提供的是向量化標註而非原始網格 —— 對這個用途更好用。</p>
+  </div>
+</section>
+
+<section id="s6">
+  <div class="sh"><span class="n">§6</span><h2>評測指標</h2></div>
+
+  <h3>只有樓板不平時才存在的失敗</h3>
+  <div class="prose">
+    <p>碰撞率與浮空率 —— PhyScene 提出、大家都在報的那兩個 —— 在這裡是<strong>結構性失明</strong>的：它們定義在所有物件共用一個平面的場景上，看不見一張沙發有一半懸在下沉客廳的邊緣。</p>
+  </div>
+
+  <div class="grid2">
+    <div><div class="k">F1a</div><div class="n">懸挑 overhang</div><div class="d">足跡越過所站分區的邊緣，落到<em>更低</em>的地面上</div></div>
+    <div><div class="k">F1b</div><div class="n">嵌入 embedded</div><div class="d">足跡越過邊緣到<em>更高</em>的分區，物件穿進旁邊的平台</div></div>
+    <div><div class="k">F2</div><div class="n">跨層 straddling</div><div class="d">物件橫跨兩個分區，實際上無法擺放</div></div>
+    <div><div class="k">F3</div><div class="n">擋階 step blocked</div><div class="d">過渡元素的踏階落地區被家具佔住</div></div>
+    <div><div class="k">F4</div><div class="n">淨空 headroom</div><div class="d">站立面上方有分區，淨空不足以站立</div></div>
+    <div><div class="k">F5</div><div class="n">錯層 datum</div><div class="d">宣告的支撐分區不是它實際站著的那一個</div></div>
+  </div>
+
+  <div class="note neg">
+    <span class="lbl">F1 為什麼必須拆成兩半</span>
+    <p>最初 F1 是單邊的：只有下方更低時才算懸挑。這讓「把所有東西都放在最低層」的方法 —— 也就是平面方法的行為 —— <strong>結構性免疫</strong>，因為它腳下沒有更低的東西可以懸空。它只能以「把家具開進旁邊的平台」的方式失敗，而少了 F1b，那個失敗不被計分，反方向的同一個錯誤卻被罰。</p>
+  </div>
+
+  <h3>高程層使用率 —— 拆穿「以拒絕使用換取安全」</h3>
+  <div class="prose">
+    <p>上面每一項違規都是在講「物件放錯地方」。一個方法只要<strong>從不把任何東西放上非基準層</strong>，就可以在每一項上都拿到好分數 —— 空的分區沒有物件可以放錯。所以必須同時量測非基準層樓板被家具覆蓋的比例與物件數。</p>
+    <p>§8 會顯示這不是假想威脅：平面基準在兩個測試集上都放了<strong>恰好 0 個</strong>物件在非基準層。</p>
+  </div>
+
+  <h3>能力條件化可達率（CCN）</h3>
+  <div class="prose">
+    <p>依 <a href="https://arxiv.org/abs/2602.18424">CapNav</a>（CVPR 2026）的 agent 設定。以 6 cm 網格光柵化，自由空間依 agent 半徑腐蝕，從門口洪泛填充；跨分區只能經由該 agent 能通過的過渡元素，判準是<strong>每一階</strong>的高度而非總落差。</p>
+  </div>
+
+  <div class="tw"><table>
+    <thead><tr><th>Agent</th><th class="num">單階上限</th><th class="num">半徑</th><th class="num">所需淨空</th></tr></thead>
+    <tbody>
+      <tr><td>掃地機器人</td><td class="num">0.02 m</td><td class="num">0.17</td><td class="num">0.12</td></tr>
+      <tr><td>輪椅使用者</td><td class="num">僅坡道</td><td class="num">0.35</td><td class="num">1.30</td></tr>
+      <tr><td>輪式服務機器人</td><td class="num">0.05 m</td><td class="num">0.25</td><td class="num">1.20</td></tr>
+      <tr><td>四足機器人</td><td class="num">0.20 m</td><td class="num">0.20</td><td class="num">0.70</td></tr>
+      <tr><td>成人</td><td class="num">0.45 m</td><td class="num">0.23</td><td class="num">1.90</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="prose">
+    <p>這個指標在平面樓板上幾乎不隨 agent 變化，這正是沒人報它的原因。加上高程之後，同一批房間的<strong>能力落差從 0.128 拉到 0.431，3.4 倍</strong> —— 高程才給了它鑑別力。</p>
+  </div>
+</section>
+
+<section id="s7">
+  <div class="sh"><span class="n">§7</span><h2>模型與訓練</h2></div>
+  <div class="prose">
+    <p>ATISS 式自回歸，27.8M 參數。相對於平面方法有三處改動，其中兩處有效、一處無效（§8）。</p>
+  </div>
+
+  <h3>輸入 token</h3>
+<pre>[ 邊界 32 點 ] [ 房間標量 ] [ 分區 token × K ] [ 已放置物件 × n ] [ query ]
+
+分區 token 特徵（9 維）：
+  質心 xy · 外接尺寸 xy · 面積 · 高度 h<sub>k</sub>
+  離開此層的最小單階高度 · 進入此層的最小單階高度 · 是否為基準層
+</pre>
+
+  <h3>三處改動</h3>
+  <div class="prose">
+    <ol>
+      <li><strong>分區 token。</strong>高程場作為 context 進入注意力，包含幾何、高度、以及誰上得來（最小單階高度）。</li>
+      <li><strong>支撐指標頭取代 z 回歸。</strong>對 <code>[分區 | 已放置物件 | 天花]</code> 做注意力打分並指向其一。<code>z</code> 之後由 <code>resolve()</code> 算出。放錯樓層因此是一個分類錯誤，被直接懲罰，而不是一個它本來就可以自由發明的 z 上的幾公分回歸誤差。</li>
+      <li><strong>分區相對注意力偏置。</strong>三個學習到的純量（同層／跨層／父子）加到注意力 logits 上。原提案是對連續 Δz 做偏置，但同一分區內所有物件的 Δz 都是 0，沒有訊號；離散關係才是重點。<span style="color:var(--bad)">—— 這一項最後測不出任何效果。</span></li>
+    </ol>
+  </div>
+
+  <div class="note warn">
+    <span class="lbl">一個必須修的建模錯誤</span>
+    <p>第一版的 <code>xy</code>／<code>size</code>／<code>yaw</code> 用確定性回歸配 smooth-L1，會收斂到<strong>條件平均</strong> —— 沙發該放哪的分佈是多峰的（靠這面牆或那面牆），平均值是房間正中央，於是所有沙發疊在一起。改成混合密度頭（xy 用 16 個成分）後才有可用的佈局。</p>
+  </div>
+
+  <h3>訓練設定</h3>
+  <div class="tw"><table>
+    <thead><tr><th>項目</th><th>設定</th></tr></thead>
+    <tbody>
+      <tr><td>資料</td><td>FRONT-Elev 5,213 訓練 / 579 驗證（依原始平面房間 id 切分，同一房間不跨切）</td></tr>
+      <tr><td>目標</td><td>teacher forcing，每個場景抽一個前綴長度；物件順序隨機排列但父節點必在子節點之前</td></tr>
+      <tr><td>損失</td><td><code>stop + cat + 2·support + 0.2·xy + 0.1·(size+yaw+dz)</code>，後四項為混合 NLL</td></tr>
+      <tr><td>最佳化</td><td>AdamW 3e-4，cosine，warmup 1000 步，bf16，400 epoch</td></tr>
+      <tr><td>硬體</td><td>單張 NVIDIA L40，每組約 12 分鐘</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>取樣與對照組</h3>
+  <div class="prose">
+    <p>取樣器、拒絕採樣與指標<strong>四組共用</strong>，唯一的差別是模型被告知多少關於樓板的事 —— 這樣比較才只隔離這一個變因。每個物件的平面位置從混合分布抽最多 8 次，取「分區外溢 + 與既有物件重疊」代價最小者。</p>
+  </div>
+
+  <div class="tw"><table>
+    <thead><tr><th>對照組</th><th>知道什麼</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ours</strong></td><td>分區 token + 相對偏置</td></tr>
+      <tr><td>no-bias</td><td>分區 token，無偏置（消融）</td></tr>
+      <tr><td>flatten</td><td>無分區；所有落地物件一律指派給基準層 —— 現有方法的行為</td></tr>
+      <tr><td>per-tier</td><td>無分區，但每個分區各自當成一個獨立房間跑一次再合併（免費拿到 GT 高程場）</td></tr>
+      <tr><td>gt</td><td>語料庫本身，上界</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="s8">
+  <div class="sh"><span class="n">§8</span><h2>結果</h2></div>
+
+  <h3>同分布：held-out FRONT-Elev，300 間</h3>
+  <div class="tw"><table>
+    <thead><tr><th>指標</th><th class="num">GT</th><th class="num">ours</th><th class="num">no-bias</th><th class="num">flatten</th><th class="num">per-tier</th></tr></thead>
+    <tbody>
+      <tr><td>懸挑 F1a</td><td class="num">0.000</td><td class="num best">0.032</td><td class="num">0.027</td><td class="num">0.059</td><td class="num worst">0.078</td></tr>
+      <tr><td>嵌入 F1b</td><td class="num">0.000</td><td class="num best">0.031</td><td class="num">0.040</td><td class="num">0.077</td><td class="num worst">0.095</td></tr>
+      <tr><td>跨層 F2</td><td class="num">0.000</td><td class="num best">0.039</td><td class="num">0.042</td><td class="num">0.095</td><td class="num worst">0.117</td></tr>
+      <tr><td>錯層 F5</td><td class="num">0.000</td><td class="num best">0.010</td><td class="num">0.014</td><td class="num">0.051</td><td class="num worst">0.067</td></tr>
+      <tr><td>擋階 F3（場景）</td><td class="num">0.000</td><td class="num">0.653</td><td class="num">0.697</td><td class="num best">0.537</td><td class="num worst">0.907</td></tr>
+      <tr><td>淨空 F4</td><td class="num">0.001</td><td class="num best">0.007</td><td class="num">0.007</td><td class="num">0.012</td><td class="num">0.014</td></tr>
+      <tr class="rule"><td><strong>高程層使用（面積）</strong></td><td class="num">0.384</td><td class="num best">0.356</td><td class="num">0.359</td><td class="num worst">0.077</td><td class="num">0.408</td></tr>
+      <tr><td><strong>高程層使用（物件／場景）</strong></td><td class="num">3.53</td><td class="num best">3.60</td><td class="num">3.92</td><td class="num worst">0.00</td><td class="num">5.70</td></tr>
+      <tr class="rule"><td>CCN 掃地機器人</td><td class="num">0.561</td><td class="num best">0.501</td><td class="num">0.484</td><td class="num worst">0.240</td><td class="num">0.389</td></tr>
+      <tr><td>CCN 輪椅</td><td class="num">0.607</td><td class="num best">0.505</td><td class="num">0.498</td><td class="num worst">0.217</td><td class="num">0.451</td></tr>
+      <tr><td>CCN 成人</td><td class="num">0.909</td><td class="num best">0.775</td><td class="num">0.770</td><td class="num">0.674</td><td class="num worst">0.543</td></tr>
+      <tr><td>物件數／場景</td><td class="num">9.34</td><td class="num">9.48</td><td class="num">9.70</td><td class="num">9.44</td><td class="num">14.58</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="prose">
+    <p>分區條件化把每一項擺放違規大致砍半，比 per-tier 分解好 2–3 倍，而且是唯一使用高程層的程度與 ground truth 吻合的方法（每場景 3.60 對 3.53）。</p>
+  </div>
+
+  <div class="note neg">
+    <span class="lbl">平面基準是靠「拒絕使用」拿到安全的</span>
+    <p>flatten 在兩個測試集上都放了 <strong>0.00 個</strong>物件在任何非基準層，覆蓋率 7.7% 與 3.1%，對照 ground truth 的 38.4%。每一項擺放違規都是在講物件放錯分區，而空的分區沒有物件可以放錯。它的低違規率是「完全不使用高程」的代價，而代價顯現在可達率上：掃地機器人在 flatten 場景只能到 0.240，我們是 0.501，GT 是 0.561。<strong>只報違規率而不報使用率，這個基準會看起來是贏家。</strong></p>
+  </div>
+
+  <figure>
+    <img src="assets/samples_frontelev.png" alt="四種方法在同一批房間上的生成結果，違規物件以外框標示">
+    <figcaption><b>圖 2．</b>同一批房間、四種方法。外框標示違規物件（紅=懸挑、紫=跨層、橘=錯層）。第三、四列的 +0.37 m 平台在 flatten 欄<strong>完全空著</strong> —— 這就是上面那段話的視覺版本。ours 大致尊重分區邊界，但擺放仍然鬆散、彼此重疊，與 GT 的整齊有明顯差距。</figcaption>
+  </figure>
+
+  <h3>分布外：MP3D-Elev，72 間真實房</h3>
+  <div class="tw"><table>
+    <thead><tr><th>指標</th><th class="num">ours</th><th class="num">no-bias</th><th class="num">flatten</th><th class="num">per-tier</th></tr></thead>
+    <tbody>
+      <tr><td>懸挑 F1a</td><td class="num worst">0.096</td><td class="num">0.112</td><td class="num best">0.025</td><td class="num">0.057</td></tr>
+      <tr><td>嵌入 F1b</td><td class="num">0.063</td><td class="num">0.059</td><td class="num">0.026</td><td class="num best">0.013</td></tr>
+      <tr><td>跨層 F2</td><td class="num worst">0.088</td><td class="num">0.072</td><td class="num best">0.029</td><td class="num">0.039</td></tr>
+      <tr><td>錯層 F5</td><td class="num">0.079</td><td class="num worst">0.092</td><td class="num best">0.024</td><td class="num">0.027</td></tr>
+      <tr><td>擋階 F3（場景）</td><td class="num">0.542</td><td class="num best">0.431</td><td class="num">0.444</td><td class="num worst">0.583</td></tr>
+      <tr class="rule"><td><strong>高程層使用（面積）</strong></td><td class="num">0.337</td><td class="num">0.291</td><td class="num worst">0.031</td><td class="num best">0.364</td></tr>
+      <tr><td><strong>高程層使用（物件／場景）</strong></td><td class="num">3.64</td><td class="num">3.03</td><td class="num worst">0.00</td><td class="num best">4.26</td></tr>
+      <tr class="rule"><td>CCN 掃地機器人</td><td class="num">0.636</td><td class="num">0.620</td><td class="num worst">0.484</td><td class="num best">0.664</td></tr>
+      <tr><td>CCN 輪椅</td><td class="num">0.618</td><td class="num">0.615</td><td class="num worst">0.424</td><td class="num best">0.620</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note neg">
+    <p><strong>在真實高程場上，我們的方法在違規指標上沒有贏過平面基準。</strong>同分布量到的優勢沒有遷移過去。這是目前最重要的未解問題。</p>
+  </div>
+
+  <h3>兩個負面結果</h3>
+  <div class="prose">
+    <p><strong>分區相對注意力偏置沒有作用。</strong><code>ours</code> 與 <code>no-bias</code> 在兩個測試集的每一項指標上都在噪聲範圍內。三個提議模組之一沒有證據支持，應該從論文裡拿掉而不是硬辯。</p>
+    <p><strong>沒有任何方法能保持階梯淨空。</strong>54–91% 的生成場景擋住通道，GT 是 0.000。這是最大的單一缺口：取樣器的拒絕成本只計算分區外溢與物件重疊，完全不知道踏階必須保持可走。</p>
+  </div>
+
+  <h3>領域落差，已量測</h3>
+  <div class="tw"><table>
+    <thead><tr><th>統計量</th><th class="num">FRONT-Elev（訓練）</th><th class="num">MP3D-Elev（真實）</th><th>是否校準過</th></tr></thead>
+    <tbody>
+      <tr><td>房間面積</td><td class="num">19.97 m²</td><td class="num">34.19 m²</td><td>否</td></tr>
+      <tr><td>落差</td><td class="num">0.37 m</td><td class="num">0.39 m</td><td style="color:var(--good)">是（§4）</td></tr>
+      <tr><td>最小分區佔比</td><td class="num">0.40</td><td class="num">0.23</td><td>否</td></tr>
+      <tr><td>每房過渡數</td><td class="num">2.0</td><td class="num">1.0</td><td>否</td></tr>
+      <tr><td>過渡寬度</td><td class="num">1.84 m</td><td class="num">2.93 m</td><td>否</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="prose">
+    <p><strong>唯一校準過的統計量是唯一遷移得好的。</strong>其他三個都對不上：生成器做出的高程區比真實的大，而且用兩道窄階梯連接，真實房間是一道寬的。這強烈暗示 OOD 落差主要是分布問題而非方法問題 —— 但這是待驗證的假說，不是結論。</p>
+  </div>
+</section>
+
+<section id="s9">
+  <div class="sh"><span class="n">§9</span><h2>已知缺陷與下一步</h2></div>
+
+  <h3>誠實的現況</h3>
+  <div class="prose">
+    <ul>
+      <li><strong>絕對品質不足。</strong>76% 的生成場景至少含一個違規，GT 是 1%。圖 2 也看得出擺放鬆散重疊。5.2k 訓練房間太少，語料庫是瓶頸。</li>
+      <li><strong>循環性只解了一半。</strong>落差幅度來自真實資料、區域形狀來自真實家具群，但高程區的<em>位置</em>與分層指派規則仍然是我寫的。MP3D-Elev 打破了「高程場」這一半的循環，沒有打破「佈局規則」那一半。</li>
+      <li><strong>分段常數是刻意的取捨。</strong>涵蓋下沉區、高台、錯層、夾層四類最常見的住宅高程；坡道以 <code>ramp</code> 型別近似；連續曲面樓板留給 future work。</li>
+      <li><strong>尚未與已發表方法直接對照。</strong>PhyScene 權重只有 livingroom，而且它吃不了高程場，接上去等於再做一次 flatten adaptation —— 會同時改變架構與分區知識兩個變因，證據力比目前的受控消融弱。</li>
+    </ul>
+  </div>
+
+  <h3>下一步，按期望價值排序</h3>
+  <div class="prose">
+    <ol>
+      <li><strong>把區域佔比、過渡數、過渡寬度也用 HouseLayout3D 統計校準</strong>（跟落差同樣做法），重建語料庫重訓。便宜，而且直接檢驗 OOD 落差最可能的解釋。</li>
+      <li><strong>在取樣器的拒絕成本裡加階梯淨空項。</strong>四種方法共同的失敗。</li>
+      <li><strong>拿掉分區相對偏置</strong>，或找到一個能證明自己價值的形式。</li>
+      <li><strong>提高語料庫產出率。</strong>目前 34%；<code>nudge_failed</code> 與 <code>area_frac_out_of_range</code> 是兩大拒絕桶。</li>
+    </ol>
+  </div>
+</section>
+
+<section id="s10">
+  <div class="sh"><span class="n">§10</span><h2>復現</h2></div>
+  <div class="prose">
+    <p>相依於 <a href="https://github.com/gino6178/project5">project5 (ReRoom)</a> 的 3D-FRONT parser、category 表與幾何工具，以 <code>import</code> 而非複製的方式使用；路徑由環境變數 <code>REROOM_ROOT</code> 覆寫。</p>
+  </div>
+
+<pre><span class="c"># 1. 前提量測：3D-FRONT 的樓板到底有多平</span>
+python scripts/scan_front_elevation.py
+python scripts/scan_front_platforms.py
+
+<span class="c"># 2. 真實高程統計（需先取得 HouseLayout3D，40 MB，MIT，無 gate）</span>
+huggingface-cli download houselayout3d/HouseLayout3D --repo-type dataset \
+    --local-dir data/houselayout3d
+python scripts/scan_houselayout_elevation.py
+
+<span class="c"># 3. 語料庫與真實測試集</span>
+python scripts/build_frontelev.py --workers 12 --tries 8
+python scripts/build_mp3d_elev.py
+
+<span class="c"># 4. 訓練（單卡；三組只差在被告知多少關於樓板的事）</span>
+python scripts/train_elevate.py --out runs/m2_full     --epochs 400
+python scripts/train_elevate.py --out runs/m2_no_bias  --epochs 400 --no-tier-bias
+python scripts/train_elevate.py --out runs/m2_no_tiers --epochs 400 --no-tiers
+
+<span class="c"># 5. 評測</span>
+python scripts/sample_elevate.py --runs runs --out outputs/eval_frontelev.json
+python scripts/sample_elevate.py --runs runs --mp3d data/mp3d_elev/rooms.jsonl \
+    --out outputs/eval_mp3d.json
+
+<span class="c"># 6. 圖</span>
+python scripts/plot_scenes.py
+python scripts/plot_samples.py --runs runs
+</pre>
+
+  <div class="prose">
+    <p><code>pytest tests/</code> 有 13 項，包含直接驗證「接觸損失恆為零」與「K=1 時對真實 3D-FRONT 無損還原」的兩項。</p>
+  </div>
+</section>
+
+<footer>
+  Elevate3D · project6 · 最後更新 2026-08-29<br>
+  文獻查證範圍 2024-01 至 2026-08。未發現以房間內部高程變化為生成標的的既有工作；此結論以公開檢索為限。<br>
+  相關：<a href="https://github.com/gino6178/project5">project5 (ReRoom-E2E)</a> · <a href="https://github.com/gino6178/project4">project4 (ReRoom)</a>
+</footer>
+
+</div>
+</body>
+</html>
