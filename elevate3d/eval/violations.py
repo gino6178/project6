@@ -5,15 +5,20 @@ reports — are blind here by construction: they were defined on scenes where
 every object stands on the same plane, so none of them can see a sofa hanging
 half over the edge of a sunken lounge.  These five can.
 
-F1 overhang     the object hangs past the edge of the tier it stands on
+F1a overhang    the object hangs past its tier's edge, over lower ground
+F1b embedded    it hangs past its tier's edge into *higher* ground, so it
+                passes through the platform next to it
 F2 straddling   the object spans two tiers and cannot rest on either
 F3 step blocked the treads of a transition are occupied
 F4 headroom     a standing surface has a tier above it too low to stand under
 F5 datum        the declared support tier is not the tier under the object
 
-F1 and F2 are close relatives and both are measured, because they fail
-differently: an overhanging object is placeable but unstable, a straddling one
-is not placeable at all.
+F1 is split in two because a single-sided version is not a fair measure. A
+method that puts everything on the lowest tier — which is what a flat-floor
+method does — can never overhang anything, since there is nothing below it to
+hang over. It can only fail by driving furniture into the platform beside it,
+and without F1b that failure goes uncounted while the same error the other way
+round is penalised.
 """
 from __future__ import annotations
 
@@ -26,9 +31,10 @@ from shapely.geometry import Polygon, box
 from ..core.scene import OBJ, TIER, ElevScene
 
 __all__ = ["VIOLATIONS", "footprint", "violations", "violation_rates",
-           "STANDING_HEADROOM"]
+           "tier_utilisation", "STANDING_HEADROOM"]
 
-VIOLATIONS = ("overhang", "straddling", "step_blocked", "headroom", "datum")
+VIOLATIONS = ("overhang", "embedded", "straddling", "step_blocked",
+              "headroom", "datum")
 
 # Below this a person cannot stand under a soffit.  Residential codes put
 # habitable headroom at 2.0-2.3 m; 1.9 m is the permissive reading.
@@ -105,19 +111,21 @@ def violations(es: ElevScene, *,
                                  abs(under.height - own.height),
                                  f"declared {own.tid}, stands on {under.tid}"))
 
-        # -- F1 overhang: footprint past the edge of its own tier -----------
+        # -- F1 the footprint leaves its own tier ---------------------------
         outside = fp.difference(own.shp)
-        if not outside.is_empty:
-            frac = outside.area / fp.area
-            if frac > overhang_tol:
-                # only counts as an overhang if what is underneath is lower;
-                # hanging over a *higher* tier is interpenetration, not overhang
-                lower = any(t.height < own.height - 0.02
-                            and t.shp.intersection(outside).area > 1e-6
-                            for t in field.tiers)
-                if lower:
-                    out.append(Violation("overhang", o.oid, float(frac),
-                                         f"tier {own.tid}"))
+        if not outside.is_empty and outside.area / fp.area > overhang_tol:
+            over_low = sum(t.shp.intersection(outside).area
+                           for t in field.tiers if t.height < own.height - 0.02)
+            over_high = sum(t.shp.intersection(outside).area
+                            for t in field.tiers if t.height > own.height + 0.02)
+            if over_low / fp.area > overhang_tol:
+                out.append(Violation("overhang", o.oid,
+                                     float(over_low / fp.area),
+                                     f"tier {own.tid}"))
+            if over_high / fp.area > overhang_tol:
+                out.append(Violation("embedded", o.oid,
+                                     float(over_high / fp.area),
+                                     f"tier {own.tid}"))
 
         # -- F4 headroom: is there a soffit over where this object stands? --
         clear = field.headroom_at(o.xy, ceiling)
@@ -147,6 +155,40 @@ def violations(es: ElevScene, *,
     return out
 
 
+def tier_utilisation(es: ElevScene) -> dict:
+    """How much of the raised or sunken floor is actually furnished.
+
+    A method can score well on every violation above by simply never putting
+    anything on a non-datum tier — the failures are all about objects being in
+    the wrong place, and an empty tier has no objects to be wrong.  Measuring
+    what fraction of the non-datum floor carries furniture is what separates
+    "used the tiers correctly" from "declined to use them".
+    """
+    from shapely.ops import unary_union
+    field = es.field
+    datum = field.datum.tid
+    others = [t for t in field.tiers if t.tid != datum]
+    if not others:
+        return {"non_datum_area": 0.0, "non_datum_covered": 0.0,
+                "non_datum_objects": 0}
+    area = sum(t.area for t in others)
+    fps = [footprint(o) for o in es.objects if _grounded(es, o)]
+    covered, n = 0.0, 0
+    if fps:
+        u = unary_union(fps)
+        for t in others:
+            covered += t.shp.intersection(u).area
+        for o in es.objects:
+            if not _grounded(es, o):
+                continue
+            s = es.support_of(o.oid)
+            if s.kind == TIER and s.ref != datum:
+                n += 1
+    return {"non_datum_area": float(area),
+            "non_datum_covered": float(covered),
+            "non_datum_objects": int(n)}
+
+
 def violation_rates(scenes) -> dict:
     """Per-object rates for F1/F2/F4/F5 and a per-scene rate for F3.
 
@@ -169,7 +211,17 @@ def violation_rates(scenes) -> dict:
             n_step_scenes += 1
         if vs:
             any_scene += 1
+    util_a = util_c = 0.0
+    util_n = 0
+    for es in scenes:
+        u = tier_utilisation(es)
+        util_a += u["non_datum_area"]
+        util_c += u["non_datum_covered"]
+        util_n += u["non_datum_objects"]
+
     out = {f"{k}_rate": (per_obj[k] / n_obj if n_obj else 0.0) for k in per_obj}
+    out["tier_use_area_frac"] = util_c / util_a if util_a > 0 else 0.0
+    out["tier_use_objects_per_scene"] = util_n / max(n_scene, 1)
     out["step_blocked_scene_rate"] = n_step_scenes / n_scene if n_scene else 0.0
     out["any_violation_scene_rate"] = any_scene / n_scene if n_scene else 0.0
     out["n_scenes"] = n_scene
