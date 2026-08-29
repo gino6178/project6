@@ -22,17 +22,29 @@ height change, median 0.38 m.
 | `elevate3d/eval/violations.py` | F1a overhang · F1b embedded · F2 straddling · F3 step blocked · F4 headroom · F5 datum, plus tier utilisation |
 | `elevate3d/eval/navigability.py` | capability-conditioned reachability (CapNav agent profiles) |
 | `elevate3d/gen/` | 27.8M autoregressive layout transformer with a support pointer |
+| `scripts/measure_real_geometry.py` | the measured priors the generator is calibrated against |
 
 `notes/W0_findings.md` records the dataset measurements; `notes/RESULTS.md`
 records the first end-to-end numbers, including the negative ones.
 
 ## State
 
-In distribution, tier conditioning halves every placement violation against the
-flat baseline and is the only method whose use of the raised floor matches
-ground truth. **On 72 real out-of-distribution fields the advantage does not
-transfer**, the tier-relative attention bias shows no measurable effect, and no
-method keeps the steps clear. See §8–§9 of the page.
+Two rounds. In distribution, tier conditioning roughly halves every placement
+violation against the flat baseline and is the only method whose use of the
+raised floor matches ground truth.
+
+Round 2 acted on what round 1 measured. Scoring tread occupancy in the sampler
+cut step blocking from 0.65 to **0.21** in distribution and 0.54 to **0.26** out
+of it — the largest single win, and it applies to every method since the sampler
+is shared. Calibrating the generator's geometry against real homes, together
+with a 2.55x larger corpus, cut every out-of-distribution violation rate by
+24–71 %.
+
+Still open: **the flat baseline keeps lower OOD violation rates by abstaining** —
+it places 0.00 objects on non-datum tiers and covers 1.8 % of the raised floor
+against a ground truth 45.7 %. The tier-relative attention bias measured as
+having no effect on two independent corpora and is off by default. See §8–§9 of
+the page.
 
 ## Reproduce
 
