@@ -1,7 +1,8 @@
 # Results
 
-Three rounds. Each acted on what the previous one measured, and round 3 corrects
-an attribution round 2 got wrong.
+Four rounds. Each acted on what the previous one measured. Round 3 corrects an
+attribution round 2 got wrong; round 4 adds the metric that three rounds of
+results kept asking for, and refutes the next step rounds 2 and 3 proposed.
 
 Model: 27.8 M-parameter autoregressive layout transformer. Sampling, rejection
 and metrics are shared by every row, so each comparison isolates one variable.
@@ -11,6 +12,7 @@ and metrics are shared by every row, so each comparison isolates one variable.
 | R1 | uncalibrated, 5,792 pairs | 5,213 | 8 tries, no step term, stop at 0.5 |
 | R2 | calibrated, 14,782 pairs | 13,300 | 12 tries, step term, stop at 0.5 |
 | R3 | calibrated, 14,782 pairs | 13,300 | as R2, stop threshold calibrated |
+| R4 | same as R3 | 13,300 | as R3; adds tier precision, density and elevation F1 |
 
 ---
 
@@ -123,34 +125,79 @@ separates us from it is not accuracy but willingness to use the elevation.
 violation against 0.003 of ground truth.
 
 **Two corpus statistics remain off.** Transition width 1.90 m against a real
-2.93 m; region size 0.35 of the floor against a real 0.27. Both are bounded by
-3D-FRONT's room sizes — 22 m² median against 34 m² for real rooms.
+2.93 m; region size 0.35 of the floor against a real 0.27. Round 3 blamed
+3D-FRONT's room sizes for this; round 4 measured it and that was wrong — see
+below.
 
 ---
 
-## The larger-room source: assessed, not built
+## Round 4 — a metric that abstention cannot win
 
-§9 named extending Infinigen Indoors with an elevation primitive as the way out
-of the room-size bound. That assessment is now concrete rather than speculative.
-Infinigen 1.15.5 installs cleanly against Python 3.11 (`bpy` 4.2.0, ~3 GB), its
-constraint graph builds, and its floorplan solver runs. Two findings:
+Three rounds ended the same way: the flat baseline posted the lowest violation
+rates by never placing an object on a non-datum tier, and no violation metric
+could see it, because every one of them is about an object being in the wrong
+place and an empty tier holds none.
 
-* **The elevation primitive is deep surgery.** Rooms are shapely polygons
-  extruded by a constant `constants.wall_height`; the floor mesh is built from
-  the 2D contour in `room/solidifier.py`. Per-region floor heights would need
-  changes across `state_def`, `solidifier`, the annealing moves in
-  `room/solver.py`, and the object solver's `SupportedBy` — four modules of
-  someone else's codebase, then a validation pass on the result.
-* **Even using it only as a room-shape source is a pipeline, not a patch.** The
-  floorplan solve is simulated annealing and takes minutes per house; the rooms
-  would then have to be furnished by retargeting 3D-FRONT layouts into them
-  (project5 does this), and only then could the elevation programs run.
+`elevation_f1` closes that. Precision is the share of the objects a method put
+on a raised or sunken tier that are placed validly; recall is how much of the
+elevation it used against the ground truth. Refusing to use the elevation drives
+recall to zero, and the score with it.
 
-Both are multi-day. They are the right next step and they are out of scope for
-the current pass; the intermediate cheap option — merging adjacent 3D-FRONT
-rooms into open-plan spaces — was tested and rejected: it yields roughly 350
-usable rooms across the dataset, and most adjacent pairs are combinations like
-bedroom + living room that are not one space.
+| | GT | **ours** | ours-small | +bias | flatten | per-tier |
+|---|---|---|---|---|---|---|
+| tier precision | 0.999 | 0.905 | 0.857 | 0.895 | **0.000** | 0.839 |
+| tier use, objects/scene | 3.56 | 3.31 | 2.96 | 3.07 | **0.00** | 4.58 |
+| **elevation F1** | 0.9996 | **0.917** | 0.845 | 0.879 | **0.000** | 0.912 |
+| step blocked (scene) | 0.000 | 0.187 | 0.273 | 0.173 | 0.270 | 0.847 |
+
+On MP3D-Elev: ours 0.672, +bias 0.665, ours-small 0.615, **flatten 0.000**,
+per-tier 0.934.
+
+Two things to read carefully. **flatten scores exactly zero on both sets**, which
+is the point — a baseline that wins every violation metric by abstention should
+not survive a metric that asks whether it used the elevation at all. And
+**per-tier wins F1 out of distribution while blocking 61 % of the steps**: it is
+handed the ground-truth elevation field and samples each tier in isolation, so
+its tier placements are precise by construction and its circulation is not.
+F1 is about placement, not about circulation, so it must be read next to step
+blocking rather than instead of it.
+
+## The larger-room source: measured, and the premise was wrong
+
+Rounds 2 and 3 blamed two stuck corpus statistics — region size 0.35 against a
+real 0.27, transition width 1.90 m against 2.93 m — on 3D-FRONT's rooms being
+small (22 m² median against 34 m² for real ones), and named a larger-room source
+as the fix. Both halves of that were tested and both are wrong.
+
+**Larger rooms do not change the region size.** Retargeting 3D-FRONT living
+rooms into 34–49 m² boundaries with project5's optimiser and lifting the result
+gives a region fraction of **0.354** at the median — indistinguishable from the
+corpus's 0.35. Furniture fills a room proportionally, so a region grown from a
+furniture group is the same fraction of a big room as of a small one.
+
+**Infinigen's rooms are not larger anyway.** Its floorplan solver produces a
+median room of **22.0 m²** (10th–90th 6.2–56.0, n = 83 over four houses) against
+3D-FRONT's 22.3 and real homes' 34.2. It also costs 1.6–10 minutes per house,
+and the state its `solve()` returns is solidified Blender geometry, so the 2D
+polygons have to be recovered by re-running the first half of the solve.
+
+So the real cause is not the room. **It is that the region is derived from
+furniture at all.** Real elevated floors are sized by architecture — a bay
+window recess, a structural split, a mezzanine over part of a span — and the
+furniture arrives afterwards. An architecture-driven region rule is the actual
+fix, and it would also remove the artefact where a sunken area covering 56 % of
+the room leaves the datum as a narrow ring.
+
+That refutation cost two measurements and saved a multi-day Infinigen
+integration. The install assessment stands on its own: Infinigen 1.15.5 works
+against Python 3.11 (`bpy` 4.2.0, ~3 GB), and adding a per-region floor height
+would still mean changes across `state_def`, `room/solidifier.py`, the annealing
+moves in `room/solver.py` and the object solver's `SupportedBy`.
+
+The cheap intermediate — merging adjacent 3D-FRONT rooms into open-plan spaces —
+was also tested and rejected: ~350 usable rooms across the dataset, and most
+adjacent pairs are combinations like bedroom + living room that are not one
+space.
 
 ## A published baseline: why not PhyScene
 
@@ -163,9 +210,11 @@ directly, not to strengthen the argument.
 
 ## Next
 
-1. **Calibrate the stop head** rather than sweeping a threshold; the sweep bottoms
-   out at 0.05, which says the head is miscalibrated.
-2. **The larger-room source**, at the scope described above.
-3. **Close the abstention gap**: a metric or a training signal that rewards using
-   the elevation correctly, rather than only punishing using it wrongly. Tier
-   utilisation reports the gap but nothing in the objective closes it.
+1. **An architecture-driven region rule.** The measurements above say the region
+   should be sized by the room's structure, not by the furniture group that ends
+   up on it. This is the single change that would move region size, transition
+   width and the narrow-ring artefact together.
+2. **Calibrate the stop head** rather than sweeping a threshold; the sweep
+   bottoms out at 0.05, which says the head is miscalibrated.
+3. **Put the elevation F1 in the objective**, not only in the report. It now
+   measures the abstention gap; nothing yet closes it during training.

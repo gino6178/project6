@@ -35,7 +35,8 @@ import elevate3d  # noqa: F401
 
 from elevate3d.core.scene import ElevScene, Support, OBJ, TIER, CEILING
 from elevate3d.eval.navigability import AGENTS, ccn_profile
-from elevate3d.eval.violations import violation_rates, violations
+from elevate3d.eval.violations import (elevation_f1, violation_rates,
+                                        violations)
 from elevate3d.geom.elevation import ElevationField
 from elevate3d.gen.dataset import (CATEGORIES, MAX_OBJECTS, MAX_TIERS,
                                    N_CATEGORIES, SUPPORT_CEILING, UNKNOWN_CAT,
@@ -371,6 +372,14 @@ def main():
                 [per_tier_sample(m, r["elev"], dev, rg, stop_p=p)
                  for r in val_recs], ccn_n=len(val_recs))
             print(f"per_tier done (stop_p={p})", flush=True)
+        # no reference layout here, so recall is measured against the best
+        # elevation use any method achieved on these rooms
+        best = max((r["tier_use_objects_per_scene"] for r in results.values()),
+                   default=0.0) or 1.0
+        for m in results:
+            results[m]["elevation_f1"] = elevation_f1(
+                results[m], {"tier_use_objects_per_scene": best})
+
         os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
         with open(args.out, "w") as fh:
             json.dump({"n": len(val_recs), "set": "mp3d_elev",
@@ -378,7 +387,8 @@ def main():
         keys = ["overhang_rate", "embedded_rate", "straddling_rate",
                 "datum_rate", "step_blocked_scene_rate", "headroom_rate",
                 "any_violation_scene_rate", "tier_use_area_frac",
-                "tier_use_objects_per_scene", "ccn_sweeping_robot",
+                "tier_use_objects_per_scene", "tier_density_ratio",
+                "tier_precision", "elevation_f1", "ccn_sweeping_robot",
                 "ccn_wheelchair", "ccn_adult", "ccn_spread",
                 "objects_per_scene"]
         print(f"\n{'metric':28s}" + "".join(f"{k:>12s}" for k in results))
@@ -457,6 +467,10 @@ def main():
     if "per_tier" in want:
         run("per_tier", load_model(args.flat_run), per_tier=True)
 
+    ref = results.get("gt", {})
+    for m in results:
+        results[m]["elevation_f1"] = elevation_f1(results[m], ref)
+
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w") as fh:
         json.dump({"n": len(val_recs), "results": results,
@@ -466,6 +480,7 @@ def main():
     keys = ["overhang_rate", "embedded_rate", "straddling_rate", "datum_rate",
             "step_blocked_scene_rate", "headroom_rate", "any_violation_scene_rate",
             "tier_use_area_frac", "tier_use_objects_per_scene",
+            "tier_density_ratio", "tier_precision", "elevation_f1",
             "ccn_sweeping_robot", "ccn_wheelchair", "ccn_adult", "ccn_spread",
             "objects_per_scene"]
     print(f"\n{'metric':28s}" + "".join(f"{k:>12s}" for k in results))

@@ -31,7 +31,8 @@ from shapely.geometry import Polygon, box
 from ..core.scene import OBJ, TIER, ElevScene
 
 __all__ = ["VIOLATIONS", "footprint", "violations", "violation_rates",
-           "tier_utilisation", "STANDING_HEADROOM"]
+           "tier_utilisation", "tier_density_ratio", "elevation_f1",
+           "STANDING_HEADROOM"]
 
 VIOLATIONS = ("overhang", "embedded", "straddling", "step_blocked",
               "headroom", "datum")
@@ -189,6 +190,36 @@ def tier_utilisation(es: ElevScene) -> dict:
             "non_datum_objects": int(n)}
 
 
+def tier_density_ratio(es: ElevScene) -> tuple:
+    """Furniture density on the raised or sunken floor, against the datum's.
+
+    Three rounds of results have the same shape: the flat baseline posts the
+    lowest violation rates by never placing anything on a non-datum tier, and no
+    violation metric can see that, because every one of them is about an object
+    being in the wrong place and an empty tier holds no objects.
+
+    A method that uses the elevation properly furnishes the raised floor at
+    roughly the density it furnishes the datum.  One that declines to use it
+    scores zero.  The ratio needs no reference layout, so it works on MP3D-Elev
+    where there is none.
+    """
+    from shapely.ops import unary_union
+    field = es.field
+    datum = field.datum.tid
+    others = [t for t in field.tiers if t.tid != datum]
+    a_hi = sum(t.area for t in others)
+    a_lo = field.tier(datum).area
+    if a_hi < 0.5 or a_lo < 0.5:
+        return 0.0, 0.0
+    fps = [footprint(o) for o in es.objects if _grounded(es, o)]
+    if not fps:
+        return 0.0, 0.0
+    u = unary_union(fps)
+    c_hi = sum(t.shp.intersection(u).area for t in others)
+    c_lo = field.tier(datum).shp.intersection(u).area
+    return c_hi / a_hi, c_lo / a_lo
+
+
 def violation_rates(scenes) -> dict:
     """Per-object rates for F1/F2/F4/F5 and a per-scene rate for F3.
 
@@ -213,17 +244,48 @@ def violation_rates(scenes) -> dict:
             any_scene += 1
     util_a = util_c = 0.0
     util_n = 0
+    dens = []
+    tier_obj = tier_bad = 0
     for es in scenes:
         u = tier_utilisation(es)
         util_a += u["non_datum_area"]
         util_c += u["non_datum_covered"]
         util_n += u["non_datum_objects"]
+        hi, lo = tier_density_ratio(es)
+        if lo > 0.01:                     # a near-empty datum makes the ratio blow up
+            dens.append(min(hi / lo, 3.0))
+        # precision of the objects it did put on a non-datum tier
+        datum = es.field.datum.tid
+        on_tier = {o.oid for o in es.objects
+                   if es.support_of(o.oid).kind == TIER
+                   and es.support_of(o.oid).ref != datum}
+        tier_obj += len(on_tier)
+        tier_bad += len({v.oid for v in violations(es) if v.oid in on_tier})
 
     out = {f"{k}_rate": (per_obj[k] / n_obj if n_obj else 0.0) for k in per_obj}
     out["tier_use_area_frac"] = util_c / util_a if util_a > 0 else 0.0
     out["tier_use_objects_per_scene"] = util_n / max(n_scene, 1)
+    out["tier_density_ratio"] = float(np.median(dens)) if dens else 0.0
+    out["tier_precision"] = (1.0 - tier_bad / tier_obj) if tier_obj else 0.0
     out["step_blocked_scene_rate"] = n_step_scenes / n_scene if n_scene else 0.0
     out["any_violation_scene_rate"] = any_scene / n_scene if n_scene else 0.0
     out["n_scenes"] = n_scene
     out["n_objects"] = n_obj
     return out
+
+
+def elevation_f1(rates: dict, reference: dict) -> float:
+    """One number that a method cannot win by refusing to use the elevation.
+
+    Precision is the share of the objects a method placed on a raised or sunken
+    tier that are placed validly; recall is how much of the elevation it used,
+    against a reference (the ground truth in distribution, the density of the
+    datum itself where there is no reference layout).  Refusing to use the
+    elevation drives recall to zero and the score with it, which is what every
+    violation rate on its own fails to do.
+    """
+    p = float(rates.get("tier_precision", 0.0))
+    ref = float(reference.get("tier_use_objects_per_scene", 0.0))
+    got = float(rates.get("tier_use_objects_per_scene", 0.0))
+    r = min(1.0, got / ref) if ref > 1e-9 else 0.0
+    return 0.0 if (p + r) < 1e-9 else 2 * p * r / (p + r)

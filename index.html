@@ -174,9 +174,9 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);
     <p>分區條件化把懸挑、跨層、錯層違規降到平面基準的 1/3–1/6，物件數與高程層使用程度都與 ground truth 吻合。</p>
   </div>
   <div>
-    <span class="tag no">真實場景仍未過</span>
-    <h3>OOD 進步但排名未變</h3>
-    <p>三輪改進後平面基準仍以「完全不使用高程」的方式維持更低的違規率。規模消融顯示第二輪把 OOD 改善歸功於幾何校準是錯的 —— 主要來自取樣器與資料量。</p>
+    <span class="tag no">兩個否定發現</span>
+    <h3>我提的下一步是錯的</h3>
+    <p>平面基準用「完全不使用高程」換低違規率 —— 新的 elevation F1 讓它得 <strong>0.000</strong>。但兩個語料庫統計量仍與真實不符，而我原本提的解法被自己的量測否定了。</p>
   </div>
 </div>
 
@@ -614,6 +614,36 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
     <figcaption><b>圖 3．</b>MP3D-Elev 的真實高程場。第三與第四列的 flatten 欄，整個高程層是空的 —— 這就是下面那段的視覺版本。</figcaption>
   </figure>
 
+  <h3>第四輪：一個「拒絕使用」贏不了的指標</h3>
+  <div class="prose">
+    <p>三輪的結局都一樣：平面基準靠著從不把物件放上非基準層，拿下最低的違規率，而<strong>沒有任何違規指標看得見這件事</strong> —— 它們每一個都在講「物件放錯地方」，而空的分區沒有物件可以放錯。</p>
+    <p><code>elevation_f1</code> 把這個洞補起來。precision 是它放上高程層的物件裡有多少放得合法；recall 是它用了多少高程，對照 ground truth。拒絕使用會把 recall 打到 0，分數跟著歸零。</p>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>指標</th><th class="num">GT</th><th class="num">ours</th><th class="num">ours-small</th><th class="num">+bias</th><th class="num">flatten</th><th class="num">per-tier</th></tr></thead>
+    <tbody>
+      <tr><td>高程層 precision</td><td class="num">0.999</td><td class="num best">0.905</td><td class="num">0.857</td><td class="num">0.895</td><td class="num worst">0.000</td><td class="num">0.839</td></tr>
+      <tr><td>高程層物件／場景</td><td class="num">3.56</td><td class="num best">3.31</td><td class="num">2.96</td><td class="num">3.07</td><td class="num worst">0.00</td><td class="num">4.58</td></tr>
+      <tr class="rule"><td><strong>elevation F1</strong>（同分布）</td><td class="num">0.9996</td><td class="num best">0.917</td><td class="num">0.845</td><td class="num">0.879</td><td class="num worst">0.000</td><td class="num">0.912</td></tr>
+      <tr><td><strong>elevation F1</strong>（分布外）</td><td class="num">—</td><td class="num">0.672</td><td class="num">0.615</td><td class="num">0.665</td><td class="num worst">0.000</td><td class="num best">0.934</td></tr>
+      <tr><td>擋階（場景）</td><td class="num">0.000</td><td class="num best">0.187</td><td class="num">0.273</td><td class="num">0.173</td><td class="num">0.270</td><td class="num worst">0.847</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>兩點要小心讀。<strong>flatten 在兩個測試集上都是 0.000</strong> —— 這正是重點：一個靠拒絕使用高程贏下所有違規指標的基準，不該通過一個「你到底有沒有用高程」的指標。而 <strong>per-tier 在分布外拿下最高 F1，卻擋住 61% 的階梯</strong>：它被免費給了 GT 高程場、每層獨立取樣，所以分區擺放精確而動線不精確。F1 講的是擺放不是動線，必須跟擋階率並排讀，不能取代它。</p>
+  </div>
+
+  <h3>更大的房間來源：量測完了，前提是錯的</h3>
+  <div class="prose">
+    <p>第二、三輪把兩個卡住的統計量歸咎於 3D-FRONT 房間太小，並提出「換更大的房間來源」。兩半都測了，兩半都錯。</p>
+    <ul>
+      <li><strong>更大的房間不會改變區域佔比。</strong>用 project5 的最佳化器把 3D-FRONT 客廳重定向到 34–49 m² 的邊界再抬升，區域佔比中位是 <strong>0.354</strong> —— 與語料庫的 0.35 沒有差別。家具會按比例填滿房間，所以從家具群長出來的區域，在大房間裡佔的比例跟小房間一樣。</li>
+      <li><strong>Infinigen 的房間本來也沒有比較大。</strong>它的 floorplan solver 產出的房間中位是 <strong>22.0 m²</strong>（10/90 為 6.2/56.0，n=83、四棟），對照 3D-FRONT 的 22.3 與真實住宅的 34.2。而且每棟要 1.6–10 分鐘，<code>solve()</code> 回傳的還是 solidify 過的 Blender 幾何，2D 多邊形得重跑前半段才拿得到。</li>
+    </ul>
+    <p>所以真正的原因不是房間，<strong>是區域根本就從家具導出</strong>。真實的高程樓板是由建築決定的 —— 飄窗凹槽、結構錯層、跨度上方的夾層 —— 家具是之後才進來的。改成建築導向的區域規則才是真的解法，而它同時會消掉「下沉區佔 56% 使基準層變成窄環」那個瑕疵。</p>
+    <p>這個否定花了兩次量測，省掉一次多日的 Infinigen 整合。安裝評估本身仍然成立：Infinigen 1.15.5 在 Python 3.11 下可用（<code>bpy</code> 4.2.0、約 3 GB），而加入分區高度仍需動 <code>state_def</code>、<code>room/solidifier.py</code>、<code>room/solver.py</code> 的退火 move 與物件求解器的 <code>SupportedBy</code>。</p>
+  </div>
+
   <div class="note neg">
     <span class="lbl">三輪改進沒有動搖的一件事</span>
     <p>flatten 在兩個測試集上仍然放 <strong>0.00 個</strong>物件在非基準層，只覆蓋 3.4% 的高程樓板（GT 45.7%）。它的低違規率是「完全不使用高程」換來的。每一項違規都在講物件放錯分區，而它從不把物件放上去 —— 分開我們與它的不是準度，是<strong>願不願意使用高程</strong>。目前的目標函數只懲罰「用錯」，沒有任何一項獎勵「用對」。</p>
@@ -634,14 +664,10 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
     </ul>
   </div>
 
-  <h3>更大的房間來源：評估完成，未實作</h3>
+  <h3>更大的房間來源：已被自己的量測否定</h3>
   <div class="prose">
-    <p>兩個卡住的統計量都追溯到 3D-FRONT 的房間尺寸。原先寫的出路是擴充 Infinigen Indoors。這個評估現在是具體的而非臆測 —— Infinigen 1.15.5 在 Python 3.11 下裝得起來（<code>bpy</code> 4.2.0，約 3 GB），約束圖建得起來，floorplan solver 跑得動。兩個發現：</p>
-    <ul>
-      <li><strong>加高程 primitive 是深度手術。</strong>房間是 shapely 多邊形按常數 <code>constants.wall_height</code> 擠出，地板網格在 <code>room/solidifier.py</code> 由 2D 輪廓生成。要有分區高度得動 <code>state_def</code>、<code>solidifier</code>、<code>room/solver.py</code> 的退火 move、以及物件求解器的 <code>SupportedBy</code> —— 別人程式庫的四個模組，之後還要驗證結果。</li>
-      <li><strong>就算只拿它當房型來源也是一條管線，不是一個補丁。</strong>floorplan 求解是模擬退火，每棟要數分鐘；解出來的房間還得用 3D-FRONT 佈局重定向（project5 做的正是這件事）來佈置，然後才能套用高程程式。</li>
-    </ul>
-    <p>兩者都是多日工程，是正確的下一步但不在這一輪的範圍內。中間那個便宜選項 —— 把相鄰的 3D-FRONT 房間合併成開放空間 —— 測過並否決了：全 dataset 只能得到約 350 個可用房間，而且多數相鄰配對是「臥室 + 客廳」這種建築上不成立的組合。</p>
+    <p>§8 記錄了完整過程。結論是：更大的房間不會改變區域佔比（重定向到 34–49 m² 後仍是 0.354），而 Infinigen 的房間本來也沒有比較大（中位 22.0 m² 對 3D-FRONT 的 22.3）。真正的原因是<strong>區域從家具導出</strong>，不是房間太小。</p>
+    <p>中間那個便宜選項 —— 把相鄰的 3D-FRONT 房間合併成開放空間 —— 也測過並否決：全 dataset 只能得到約 350 個可用房間，而且多數相鄰配對是「臥室 + 客廳」這種建築上不成立的組合。</p>
   </div>
 
   <h3>為什麼不接 PhyScene</h3>
@@ -652,9 +678,9 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
   <h3>下一步，按期望價值排序</h3>
   <div class="prose">
     <ol>
-      <li><strong>把 stop 頭訓練得校準</strong>，而不是掃一個閾值。</li>
-      <li><strong>更大的房間來源</strong>，範圍如上。</li>
-      <li><strong>關掉「拒絕使用」這個缺口。</strong>目前的目標函數只懲罰「把物件放錯分區」，沒有任何一項獎勵「正確地使用高程」。高程層使用率把這個缺口報出來了，但沒有東西去關它 —— 這是三輪改進都沒有動搖 flatten 排名的根本原因。</li>
+      <li><strong>建築導向的區域規則。</strong>上面的量測說區域該由房間的結構決定，不是由最後放上去的家具群決定。這一個改動會同時移動區域佔比、過渡寬度與窄環瑕疵。</li>
+      <li><strong>把 stop 頭訓練得校準</strong>，而不是掃一個閾值 —— 掃描結果落在下界 0.05。</li>
+      <li><strong>把 elevation F1 放進目標函數</strong>，而不只是放進報告。它現在能量出「拒絕使用」這個缺口，但訓練時沒有任何東西去關它。</li>
     </ol>
   </div>
 </section>
