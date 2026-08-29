@@ -1,0 +1,104 @@
+{
+ "n_rooms": 72,
+ "buildings": {
+  "1LXtFkjw3qL": 6,
+  "HxpKQynjfin": 2,
+  "S9hNv5qa7GM": 9,
+  "TbHJrupSAjP": 24,
+  "WYY7iVyf5p8": 4,
+  "YFuZgdQ5vWj": 4,
+  "e9zR4mvMWw7": 5,
+  "jtcxE69GiFV": 15,
+  "p5wJjkQkbXX": 3
+ },
+ "report": {
+  "ours": {
+   "overhang": {
+    "pooled": 0.01956996117535333,
+    "building_mean": 0.01763964536431857,
+    "building_sd": 0.016047348853404902,
+    "lobo_min": 0.01688133943035904,
+    "lobo_max": 0.02134904855493091
+   },
+   "straddling": {
+    "pooled": 0.025705968414301745,
+    "building_mean": 0.025648415370637598,
+    "building_sd": 0.034590878062334844,
+    "lobo_min": 0.01952197885033706,
+    "lobo_max": 0.02836953494848232
+   },
+   "datum": {
+    "pooled": 0.023135878282937103,
+    "building_mean": 0.023854371995711863,
+    "building_sd": 0.024815738469362733,
+    "lobo_min": 0.019955289808230987,
+    "lobo_max": 0.025239139945022297
+   },
+   "embedded": {
+    "pooled": 0.037357202982202985,
+    "building_mean": 0.03452958821014376,
+    "building_sd": 0.02401576700269016,
+    "lobo_min": 0.035027783162111525,
+    "lobo_max": 0.03938706795849654
+   },
+   "any": {
+    "pooled": 0.375,
+    "building_mean": 0.35493827160493824,
+    "building_sd": 0.25862355926068287,
+    "lobo_min": 0.35294117647058826,
+    "lobo_max": 0.3958333333333333
+   },
+   "tier_use": {
+    "pooled": 1.3472222222222223,
+    "building_mean": 1.1515432098765435,
+    "building_sd": 1.2039857219484345,
+    "lobo_min": 0.9365079365079365,
+    "lobo_max": 1.5
+   }
+  },
+  "flatten": {
+   "overhang": {
+    "pooled": 0.009027777777777779,
+    "building_mean": 0.004526748971193415,
+    "building_sd": 0.0076416162982345355,
+    "lobo_min": 0.005208333333333333,
+    "lobo_max": 0.009941520467836256
+   },
+   "straddling": {
+    "pooled": 0.022837752525252525,
+    "building_mean": 0.016486040965207633,
+    "building_sd": 0.019418156834753883,
+    "lobo_min": 0.015625,
+    "lobo_max": 0.02738569909622541
+   },
+   "datum": {
+    "pooled": 0.013828763828763828,
+    "building_mean": 0.013637365720699055,
+    "building_sd": 0.022934138707413947,
+    "lobo_min": 0.010035419126328217,
+    "lobo_max": 0.01746791220475431
+   },
+   "embedded": {
+    "pooled": 0.0318737974987975,
+    "building_mean": 0.03595896130618353,
+    "building_sd": 0.041532743280513776,
+    "lobo_min": 0.02678975253602119,
+    "lobo_max": 0.037337662337662336
+   },
+   "any": {
+    "pooled": 0.2222222222222222,
+    "building_mean": 0.2175925925925926,
+    "building_sd": 0.16459358852250608,
+    "lobo_min": 0.1875,
+    "lobo_max": 0.24561403508771928
+   },
+   "tier_use": {
+    "pooled": 0.0,
+    "building_mean": 0.0,
+    "building_sd": 0.0,
+    "lobo_min": 0.0,
+    "lobo_max": 0.0
+   }
+  }
+ }
+}

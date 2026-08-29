@@ -111,6 +111,24 @@ def generate_field(fieldnet, rec, device, rng, temperature: float = 1.0,
     return ElevationField.flat(room)
 
 
+def load_model_generic(runs, name, dev):
+    """Load an M2 checkpoint by run name, honouring its stored configuration."""
+    ck = torch.load(os.path.join(runs, name, "best.pt"), map_location="cpu",
+                    weights_only=False)
+    c = ck.get("cfg") or {
+        "d": ck["args"]["d"], "layers": ck["args"]["layers"],
+        "heads": ck["args"]["heads"],
+        "use_tiers": not ck["args"]["no_tiers"],
+        "use_tier_bias": not ck["args"].get("no_tier_bias", True)}
+    m = Elevate3D(d=c["d"], layers=c["layers"], heads=c["heads"],
+                  use_tiers=c["use_tiers"],
+                  use_tier_bias=c.get("use_tier_bias", False)).to(dev)
+    m.load_state_dict(ck["model"])
+    m.eval()
+    m._tier_no_height = bool(c.get("tier_no_height", False))
+    return m
+
+
 def _fp(xy, yaw, size):
     from shapely.affinity import rotate, translate
     from shapely.geometry import box
@@ -421,19 +439,8 @@ def main():
             tmp = _j.get("tier_temps", {})
             print("reusing in-distribution calibrations:", thr, tmp, flush=True)
         def load_model_m(name):
-            ck = torch.load(os.path.join(args.runs, name, "best.pt"),
-                            map_location="cpu", weights_only=False)
-            c = ck.get("cfg") or {
-                "d": ck["args"]["d"], "layers": ck["args"]["layers"],
-                "heads": ck["args"]["heads"],
-                "use_tiers": not ck["args"]["no_tiers"],
-                "use_tier_bias": not ck["args"].get("no_tier_bias", True)}
-            m = Elevate3D(d=c["d"], layers=c["layers"], heads=c["heads"],
-                          use_tiers=c["use_tiers"],
-                          use_tier_bias=c["use_tier_bias"]).to(dev)
-            m.load_state_dict(ck["model"]); m.eval()
-        m._tier_no_height = bool(c.get("tier_no_height", False))
-        return m
+            return load_model_generic(args.runs, name, dev)
+
         for meth, run, kw in (("ours", args.ours_run, {}),
                               ("ours_small", args.small_run, {}),
                               ("bias", args.bias_run, {}),

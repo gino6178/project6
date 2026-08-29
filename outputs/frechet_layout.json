@@ -1,0 +1,12 @@
+{
+ "n": 250,
+ "metric": "frechet_dinov3_topdown",
+ "note": "not comparable to image FID from other papers",
+ "results": {
+  "real (train side)": 0.9430151565815788,
+  "ours": 1.7866456875937313,
+  "no_height": 2.8868481865366817,
+  "flatten": 0.7521287158393157,
+  "per_tier": 1.0337191185923675
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "n": 120,
+ "room_type": "living",
+ "prior": {
+  "PhyScene": {
+   "ps_Col_obj": 0.4088173437186595,
+   "ps_Col_scene": 0.8666666666666667,
+   "ps_R_out": 0.1224676438327754,
+   "ps_R_walkable": 0.9625014544559656,
+   "ps_R_reach": 0.8628293721385827,
+   "ps_n_objects": 12.05
+  },
+  "3D-FRONT reference": {
+   "ps_Col_obj": 0.3879903010717639,
+   "ps_Col_scene": 0.85,
+   "ps_R_out": 0.07194879925143084,
+   "ps_R_walkable": 0.9716123288600078,
+   "ps_R_reach": 0.8872912768346204,
+   "ps_n_objects": 11.808333333333334
+  },
+  "ReRoom": {
+   "ps_Col_obj": 0.12913881866184498,
+   "ps_Col_scene": 0.38333333333333336,
+   "ps_R_out": 0.02799602748615906,
+   "ps_R_walkable": 0.9001043545543304,
+   "ps_R_reach": 0.8859124704558141,
+   "ps_n_objects": 11.783333333333333
+  },
+  "ReRoom (no reference)": {
+   "ps_Col_obj": 0.0017857142857142857,
+   "ps_Col_scene": 0.008333333333333333,
+   "ps_R_out": 0.008297142672142672,
+   "ps_R_walkable": 0.8900990476001543,
+   "ps_R_reach": 0.9178083021997495,
+   "ps_n_objects": 11.808333333333334
+  },
+  "ReRoom (foreign reference)": {
+   "ps_Col_obj": 0.03401198610757434,
+   "ps_Col_scene": 0.15833333333333333,
+   "ps_R_out": 0.05406174509515302,
+   "ps_R_walkable": 0.8669197137499147,
+   "ps_R_reach": 0.8598909767236174,
+   "ps_n_objects": 13.225
+  }
+ },
+ "ref_this_sample": {
+  "ps_Col_obj": 0.3878004568101317,
+  "ps_Col_scene": 0.875,
+  "ps_R_out": 0.06768672559094385,
+  "ps_R_walkable": 0.9698016740431982,
+  "ps_R_reach": 0.8943424471626872,
+  "ps_n_objects": 14.15
+ },
+ "elevate3d_k1": {
+  "ps_Col_obj": 0.38058668430669207,
+  "ps_Col_scene": 0.9,
+  "ps_R_out": 0.12760832609226572,
+  "ps_R_walkable": 0.8341624746866411,
+  "ps_R_reach": 0.8718317987338885,
+  "ps_n_objects": 11.125
+ },
+ "anchor_delta": {
+  "ps_Col_obj": 0.00018984426163221046,
+  "ps_Col_scene": 0.025000000000000022,
+  "ps_R_out": 0.00426207366048699
+ },
+ "comparable": true
+}
