@@ -59,11 +59,13 @@ class FieldCorpus(Dataset):
 
     def __getitem__(self, i):
         d = self.items[i]
-        enc = encode_room(d["room"]["polygon"], d["room"].get("height", 2.8))
+        enc = encode_room(d["room"]["polygon"], d["room"].get("height", 2.8),
+                          d["room"].get("room_type", ""))
         p = params_from_scene(d)
         return {
             "boundary": torch.as_tensor(enc["boundary"]),
             "scalars": torch.as_tensor(enc["scalars"]),
+            "room_type": torch.tensor(int(enc["room_type"]), dtype=torch.long),
             "program": torch.tensor(p.program, dtype=torch.long),
             "box": torch.as_tensor(np.asarray(p.box, dtype=np.float32)),
             "rise": torch.tensor(float(p.rise), dtype=torch.float32),

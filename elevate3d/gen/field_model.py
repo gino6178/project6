@@ -25,8 +25,19 @@ __all__ = ["FieldNet", "encode_room"]
 N_PROGRAMS = len(PROGRAMS)
 
 
+ROOM_TYPES = ("bedroom", "living_room", "dining_room", "library", "kitchen",
+              "bathroom", "other")
+ROOM_TYPE_ID = {t: i for i, t in enumerate(ROOM_TYPES)}
+
+
 def encode_room(poly: np.ndarray, height: float, room_type: str = "") -> dict:
-    """Boundary points in the room's principal frame, plus scale scalars."""
+    """Boundary points in the room's principal frame, scale scalars, room type.
+
+    Room type was missing at first and the program head sat at 0.53 over five
+    classes.  It is most of the answer — a bedroom takes a tatami platform and a
+    living room takes a sunken lounge — so leaving it out was asking the model to
+    infer the room's function from its outline.
+    """
     from .field import room_frame
     import math
     from shapely.geometry import Polygon
@@ -50,11 +61,15 @@ def encode_room(poly: np.ndarray, height: float, room_type: str = "") -> dict:
         out[k] = p[i] * (1 - u) + p[i + 1] * u
 
     area = float(Polygon(poly).area)
+    rt = (room_type or "other").lower()
+    if rt not in ROOM_TYPE_ID:
+        rt = next((t for t in ROOM_TYPES if t in rt), "other")
     return {
         "boundary": out.astype(np.float32),
         "scalars": np.array([extent[0], extent[1], area, float(height),
                              extent[0] / max(extent[1], 1e-6)],
                             dtype=np.float32),
+        "room_type": np.int64(ROOM_TYPE_ID[rt]),
     }
 
 
@@ -66,6 +81,7 @@ class FieldNet(nn.Module):
         self.bnd = nn.Sequential(nn.Linear(2, d), nn.GELU(), nn.Linear(d, d))
         self.pos = nn.Parameter(torch.randn(BOUNDARY_POINTS, d) * 0.02)
         self.sca = nn.Sequential(nn.Linear(5, d), nn.GELU(), nn.Linear(d, d))
+        self.rt = nn.Embedding(len(ROOM_TYPES), d)
         self.query = nn.Parameter(torch.randn(d) * 0.02)
         self.blocks = nn.ModuleList(
             [TierBiasedBlock(d, heads, ff, drop) for _ in range(layers)])
@@ -81,6 +97,7 @@ class FieldNet(nn.Module):
         x = torch.cat([
             self.bnd(batch["boundary"]) + self.pos,
             self.sca(batch["scalars"]).unsqueeze(1),
+            self.rt(batch["room_type"]).unsqueeze(1),
             self.query.view(1, 1, -1).expand(B, 1, -1),
         ], dim=1)
         m = torch.ones(x.shape[:2], dtype=torch.bool, device=dev)

@@ -32,7 +32,7 @@ from elevate3d.gen.dataset import (ElevCorpus, MAX_OBJECTS, MAX_TIERS,
 from elevate3d.gen.model import Elevate3D, model_size
 
 
-def losses(model, batch, device, rng):
+def losses(model, batch, device, rng, tier_weight: float = 2.0):
     B = batch["cat"].shape[0]
     n = batch["n_obj"]
     # one prefix per scene; including n itself teaches the stop decision
@@ -49,7 +49,14 @@ def losses(model, batch, device, rng):
     out, x, m, iob, q = model(b, n_ctx)
 
     stopping = (k >= n).float()
-    l_stop = F.binary_cross_entropy_with_logits(out["stop"], stopping)
+    # One prefix is drawn uniformly per scene, so a scene of n objects offers
+    # n non-stopping prefixes and one stopping one.  Unweighted, the head learns
+    # a probability near 1/(n+1) everywhere and the sweep for a usable threshold
+    # bottoms out at 0.05.  Weighting the positive class by the mean object count
+    # puts the decision boundary back at 0.5.
+    pw = torch.clamp(n.float().mean(), 1.0, 30.0)
+    l_stop = F.binary_cross_entropy_with_logits(out["stop"], stopping,
+                                                pos_weight=pw)
 
     live = stopping < 0.5
     if live.sum() == 0:
@@ -81,7 +88,14 @@ def losses(model, batch, device, rng):
     l_xy = g["xy"].nll(h, tgt_box[live, 0:2])
     l_yaw = g["yaw"].nll(h, tgt_box[live, 2:4])
     l_dz = g["dz"].nll(h, tgt_dz[live].unsqueeze(-1))
-    l_sup = F.cross_entropy(g["support"][live], tgt_sup[live])
+    # The datum dominates the support targets, and a plain cross-entropy plus an
+    # argmax at sampling time makes the model under-use the elevation: 1.77
+    # objects per scene on raised tiers against a ground truth 2.31.  Upweighting
+    # the non-datum tiers puts that back in the objective rather than leaving it
+    # to a sampling temperature.
+    w = torch.ones(g["support"].shape[-1], device=device)
+    w[1:MAX_TIERS] = tier_weight
+    l_sup = F.cross_entropy(g["support"][live], tgt_sup[live], weight=w)
 
     # the NLLs live on a different scale from the cross-entropies, so they are
     # down-weighted rather than left to dominate the support term
@@ -97,14 +111,14 @@ def losses(model, batch, device, rng):
                    "cat_acc": cacc.item()}
 
 
-def run_val(model, dl, device):
+def run_val(model, dl, device, args_tier_weight=2.0):
     model.eval()
     agg, n = {}, 0
     rng = np.random.default_rng(0)
     with torch.no_grad():
         for batch in dl:
             batch = {k: v.to(device) for k, v in batch.items()}
-            _, parts = losses(model, batch, device, rng)
+            _, parts = losses(model, batch, device, rng, args_tier_weight)
             for k, v in parts.items():
                 agg[k] = agg.get(k, 0.0) + v
             n += 1
@@ -132,6 +146,9 @@ def main():
                          "by default because it measured as having no effect")
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--tier-weight", type=float, default=2.0,
+                    help="how much the non-datum tiers are upweighted in the "
+                         "support loss; 1.0 restores the unweighted objective")
     ap.add_argument("--limit-train", type=int, default=0,
                     help="subsample the training split; used to separate the "
                          "effect of corpus scale from corpus calibration")
@@ -186,7 +203,7 @@ def main():
             batch = {k: v.to(dev, non_blocking=True) for k, v in batch.items()}
             with torch.amp.autocast("cuda", enabled=dev.type == "cuda",
                                     dtype=torch.bfloat16):
-                loss, parts = losses(model, batch, dev, rng)
+                loss, parts = losses(model, batch, dev, rng, args.tier_weight)
             opt.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
             scaler.unscale_(opt)
@@ -200,7 +217,7 @@ def main():
         nb = max(len(dtr), 1)
         tr_line = {k: v / nb for k, v in run.items()}
         if ep % 5 == 0 or ep == args.epochs - 1:
-            vl = run_val(model, dva, dev)
+            vl = run_val(model, dva, dev, args.tier_weight)
             score = vl.get("sup", 9e9) + vl.get("xy", 0.0)
             hist.append({"epoch": ep, "train": tr_line, "val": vl,
                          "lr": sched.get_last_lr()[0]})

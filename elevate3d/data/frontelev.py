@@ -331,6 +331,26 @@ def _note(stats, why):
     return None
 
 
+def edge_clearance(region: Polygon, room: Polygon, blocked,
+                   depth: float = 0.7) -> float:
+    """How much of the region's interior-facing edge lands on free floor.
+
+    Transition width was the one corpus statistic that would not move.  Clearing
+    the landing by shoving furniture was tried and reverted — it cost half the
+    yield and pushed objects into neighbouring tiers.  Scoring the candidate
+    regions by how clear their edge already is achieves the same end without
+    moving anything: among the candidates drawn for a room, prefer the one whose
+    step would land on floor that is free anyway.
+    """
+    edge = region.boundary.difference(room.boundary.buffer(0.05))
+    if edge.is_empty or blocked is None:
+        return 1.0
+    strip = edge.buffer(depth, cap_style=2)
+    if strip.area < 1e-6:
+        return 1.0
+    return float(1.0 - strip.intersection(blocked).area / strip.area)
+
+
 def architectural_region(room: Polygon, yaw: float, target_frac: float,
                          rng: np.random.Generator, openings=(),
                          min_depth: float = 0.9) -> Polygon | None:
@@ -772,6 +792,8 @@ def lift_scene(scene, rng: np.random.Generator,
               if len(GEOM_PRIOR["area_frac"]) else 0.27)
         tf = float(np.clip(tf, min(program.area_frac), max(program.area_frac)))
         anchors = anchored or seeds
+        from shapely.ops import unary_union as _uu
+        blocked_all = _uu([_footprint(o) for o in grounded]) if grounded else None
         best, best_score = None, -1e9
         for _ in range(12):
             cand = architectural_region(room_poly, yaw, tf, rng,
@@ -783,7 +805,9 @@ def lift_scene(scene, rng: np.random.Generator,
                 fp = _footprint(o)
                 if fp.area > 1e-9:
                     hit += cand.intersection(fp).area / fp.area
-            score = hit - 3.0 * abs(cand.area / room_poly.area - tf)
+            clear = edge_clearance(cand, room_poly, blocked_all)
+            score = (hit - 3.0 * abs(cand.area / room_poly.area - tf)
+                     + 2.0 * clear)
             if score > best_score:
                 best, best_score = cand, score
         if best is None:

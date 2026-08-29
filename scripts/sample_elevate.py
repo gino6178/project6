@@ -120,7 +120,7 @@ def _fp(xy, yaw, size):
 def sample_scene(model, rec, device, temperature: float = 1.0,
                  max_obj: int = MAX_OBJECTS, flatten: bool = False,
                  rng=None, n_tries: int = 12,
-                 stop_p: float = 0.5) -> ElevScene:
+                 stop_p: float = 0.5, tier_t: float = 0.0) -> ElevScene:
     """Autoregressive rollout conditioned on the room and its elevation field."""
     rng = rng or np.random.default_rng(0)
     a = scene_to_arrays(rec)
@@ -178,7 +178,16 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
         yv = F.normalize(g["yaw"].sample(h, 0.5)[0].float(), dim=-1).cpu().numpy()
         yaw = float(np.arctan2(yv[1], yv[0]))
 
-        sl = int(g["support"][0].argmax().item())
+        if tier_t > 0:
+            # An argmax over the support pointer takes the majority class, which
+            # is the datum, and the elevation ends up under-used.  Drawing from
+            # the distribution the model was trained on does not.
+            pr = F.softmax(g["support"][0] / tier_t, -1)
+            pr = torch.nan_to_num(pr, nan=0.0)
+            sl = int(torch.multinomial(pr, 1).item()) if float(pr.sum()) > 0 \
+                else int(g["support"][0].argmax().item())
+        else:
+            sl = int(g["support"][0].argmax().item())
         if flatten and sl < MAX_TIERS:
             # what a flat-floor method does: there is one floor, so everything
             # that stands on the floor stands on the datum
@@ -251,7 +260,8 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
     return es.resolve()
 
 
-def per_tier_sample(model, rec, device, rng, stop_p: float = 0.5) -> ElevScene:
+def per_tier_sample(model, rec, device, rng, stop_p: float = 0.5,
+                    tier_t: float = 0.0) -> ElevScene:
     """Baseline: treat every tier as its own flat room, then merge.
 
     This is the reviewer's "you do not need a new method" answer, and it is
@@ -271,6 +281,7 @@ def per_tier_sample(model, rec, device, rng, stop_p: float = 0.5) -> ElevScene:
                                    "height": 0.0}],
                         "transitions": []}
         part = sample_scene(model, sub, device, rng=rng, stop_p=stop_p,
+                            tier_t=tier_t,
                             max_obj=max(4, MAX_OBJECTS // max(field.K, 1)))
         for o in part.objects:
             o.oid = f"t{t.tid}_{o.oid}"
@@ -311,6 +322,36 @@ def calibrate_stop(model, recs, device, target_mean: float, *,
         err = abs(m - target_mean)
         if err < best_err:
             best, best_err = p, err
+    return best
+
+
+def calibrate_tier_temp(model, recs, device, target_use: float, stop_p: float,
+                        *, flatten=False, per_tier=False, n: int = 60,
+                        grid=(0.0, 0.5, 0.8, 1.0, 1.3, 1.8)) -> float:
+    """Pick the support temperature that reproduces the ground truth's use of
+    the elevation, the same way the stop threshold is picked.
+
+    ``0.0`` means argmax.  Higher temperatures spread the pointer away from the
+    datum, which is the majority class and the reason the elevation was
+    under-used.
+    """
+    if flatten:
+        return 0.0
+    from elevate3d.eval.violations import tier_utilisation
+    sub = recs[:n]
+    best, best_err = 0.0, float("inf")
+    for t in grid:
+        rg = np.random.default_rng(13)
+        if per_tier:
+            sc = [per_tier_sample(model, r["elev"], device, rg, stop_p, t)
+                  for r in sub]
+        else:
+            sc = [sample_scene(model, r["elev"], device, rng=rg, stop_p=stop_p,
+                               tier_t=t) for r in sub]
+        use = float(np.mean([tier_utilisation(s)["non_datum_objects"] for s in sc]))
+        err = abs(use - target_use)
+        if err < best_err:
+            best, best_err = t, err
     return best
 
 
@@ -368,10 +409,12 @@ def main():
               flush=True)
         want = [w for w in args.methods.split(",") if w.strip() and w != "gt"]
         results = {}
-        thr = {}
+        thr, tmp = {}, {}
         if args.stop_json and os.path.exists(args.stop_json):
-            thr = json.load(open(args.stop_json)).get("stop_thresholds", {})
-            print("reusing in-distribution stop thresholds:", thr, flush=True)
+            _j = json.load(open(args.stop_json))
+            thr = _j.get("stop_thresholds", {})
+            tmp = _j.get("tier_temps", {})
+            print("reusing in-distribution calibrations:", thr, tmp, flush=True)
         def load_model_m(name):
             ck = torch.load(os.path.join(args.runs, name, "best.pt"),
                             map_location="cpu", weights_only=False)
@@ -394,7 +437,8 @@ def main():
             p = args.stop_p if args.stop_p > 0 else thr.get(meth, 0.5)
             rg = np.random.default_rng(1)
             results[meth] = evaluate(
-                [sample_scene(m, r["elev"], dev, rng=rg, stop_p=p, **kw)
+                [sample_scene(m, r["elev"], dev, rng=rg, stop_p=p,
+                              tier_t=tmp.get(meth, 0.0), **kw)
                  for r in val_recs], ccn_n=len(val_recs))
             print(f"{meth} done (stop_p={p})", flush=True)
         if "per_tier" in want:
@@ -402,7 +446,8 @@ def main():
             p = args.stop_p if args.stop_p > 0 else thr.get("per_tier", 0.5)
             rg = np.random.default_rng(1)
             results["per_tier"] = evaluate(
-                [per_tier_sample(m, r["elev"], dev, rg, stop_p=p)
+                [per_tier_sample(m, r["elev"], dev, rg, p,
+                                 tmp.get("per_tier", 0.0))
                  for r in val_recs], ccn_n=len(val_recs))
             print(f"per_tier done (stop_p={p})", flush=True)
         # Recall needs a reference for how much elevation a room should carry.
@@ -494,20 +539,27 @@ def main():
     gt_mean = float(np.mean([len(r["elev"]["objects"]) for r in val_recs]))
     thresholds = {}
 
+    from elevate3d.eval.violations import tier_utilisation as _tu
+    gt_use = float(np.mean([_tu(load_scene(r["elev"]))["non_datum_objects"]
+                            for r in val_recs]))
+    temps = {}
+
     def run(name, model, **kw):
         p = (args.stop_p if args.stop_p > 0 else
              calibrate_stop(model, val_recs, dev, gt_mean, **kw))
+        t = calibrate_tier_temp(model, val_recs, dev, gt_use, p, **kw)
         thresholds[name] = p
+        temps[name] = t
         rg = np.random.default_rng(1)
         if kw.get("per_tier"):
-            sc = [per_tier_sample(model, r["elev"], dev, rg, stop_p=p)
+            sc = [per_tier_sample(model, r["elev"], dev, rg, p, t)
                   for r in val_recs]
         else:
             sc = [sample_scene(model, r["elev"], dev, rng=rg, stop_p=p,
-                               flatten=kw.get("flatten", False))
+                               tier_t=t, flatten=kw.get("flatten", False))
                   for r in val_recs]
         results[name] = evaluate(sc)
-        print(f"{name} done (stop_p={p})", flush=True)
+        print(f"{name} done (stop_p={p}, tier_t={t})", flush=True)
 
     if "ours" in want:
         run("ours", load_model(args.ours_run))
@@ -536,8 +588,9 @@ def main():
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w") as fh:
         json.dump({"n": len(val_recs), "results": results,
-                   "stop_thresholds": thresholds,
-                   "gt_objects_per_scene": gt_mean}, fh, indent=1)
+                   "stop_thresholds": thresholds, "tier_temps": temps,
+                   "gt_objects_per_scene": gt_mean,
+                   "gt_tier_use": gt_use}, fh, indent=1)
 
     keys = ["overhang_rate", "embedded_rate", "straddling_rate", "datum_rate",
             "step_blocked_scene_rate", "headroom_rate", "any_violation_scene_rate",
