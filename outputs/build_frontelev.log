@@ -1,0 +1,48 @@
+building FRONT-Elev from 6813 houses -> /home/gino/data/elevate3d/frontelev
+  500/6813 houses  pairs=446
+  1000/6813 houses  pairs=880
+  1500/6813 houses  pairs=1266
+  2000/6813 houses  pairs=1678
+  wrote /home/gino/data/elevate3d/frontelev/pairs_000.jsonl.gz  (2000 pairs)
+  2500/6813 houses  pairs=2124
+  3000/6813 houses  pairs=2530
+  3500/6813 houses  pairs=2926
+  4000/6813 houses  pairs=3340
+  4500/6813 houses  pairs=3772
+  wrote /home/gino/data/elevate3d/frontelev/pairs_001.jsonl.gz  (2002 pairs)
+  5000/6813 houses  pairs=4168
+  5500/6813 houses  pairs=4632
+  6000/6813 houses  pairs=5057
+  6500/6813 houses  pairs=5514
+  wrote /home/gino/data/elevate3d/frontelev/pairs_002.jsonl.gz  (1790 pairs)
+{
+ "houses": 6813,
+ "rooms": 17007,
+ "pairs": 5792,
+ "rooms_lifted": 5792,
+ "lift_rate": 0.3406,
+ "variants_per_room": 1.0,
+ "rejections": {
+  "nudge_failed": 53888,
+  "area_frac_out_of_range": 25680,
+  "cuts_unresolvable": 12528,
+  "cut_no_free": 10608,
+  "no_program": 6728,
+  "too_few_seeds": 5304,
+  "gt_violation:straddling": 4928,
+  "door_blocked": 4824,
+  "no_transition": 2566,
+  "cut_no_free_span": 1360,
+  "gt_violation:overhang": 707,
+  "room_too_small": 552,
+  "cut_region_tiny": 392,
+  "field_invalid:tiers unreachable": 249,
+  "cut_lost_seed": 168,
+  "field_invalid:tiers leave": 138,
+  "gt_violation:datum": 32,
+  "seed_rect_empty": 32,
+  "gt_violation:step_blocked": 19,
+  "field_invalid:tiers 1": 8
+ },
+ "shards": 3
+}

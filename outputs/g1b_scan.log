@@ -1,0 +1,100 @@
+scanning 6813 houses for platforms, 10 workers
+  500/6813  platform-rooms=23
+  1000/6813  platform-rooms=60
+  1500/6813  platform-rooms=101
+  2000/6813  platform-rooms=120
+  2500/6813  platform-rooms=140
+  3000/6813  platform-rooms=185
+  3500/6813  platform-rooms=218
+  4000/6813  platform-rooms=262
+  4500/6813  platform-rooms=287
+  5000/6813  platform-rooms=330
+  5500/6813  platform-rooms=363
+  6000/6813  platform-rooms=382
+  6500/6813  platform-rooms=401
+{
+ "houses": 6813,
+ "rooms_with_platform": 428,
+ "rooms_with_platform_rise_ge_min": 387,
+ "rooms_with_furniture_on_platform": 26,
+ "total_platforms": 853,
+ "rise_percentiles": {
+  "10": 0.005,
+  "25": 0.15,
+  "50": 0.5,
+  "75": 1.2,
+  "90": 2.628,
+  "99": 4.8
+ },
+ "area_frac_percentiles": {
+  "10": 0.0315,
+  "50": 0.1519,
+  "90": 1.0
+ },
+ "by_room_type": {
+  "MasterBedroom": 56,
+  "LivingDiningRoom": 52,
+  "SecondBedroom": 50,
+  "KidsRoom": 30,
+  "LivingRoom": 26,
+  "Library": 26,
+  "Kitchen": 22,
+  "Balcony": 21,
+  "Bedroom": 20,
+  "OtherRoom": 17,
+  "ElderlyRoom": 11,
+  "DiningRoom": 11,
+  "Bathroom": 7,
+  "Lounge": 6,
+  "CloakRoom": 5,
+  "Stairwell": 4,
+  "Terrace": 4,
+  "Hallway": 4,
+  "BedRoom": 4,
+  "SecondBathroom": 3,
+  "Aisle": 3,
+  "Corridor": 2,
+  "MasterBathroom": 2,
+  "Courtyard": 1
+ },
+ "objects_on_platforms": {
+  "": 37,
+  "chair/chair": 37,
+  "table/side table": 14,
+  "cabinet/hutch&buffet": 12,
+  "sofa/single seat sofa": 11,
+  "plants/plants - on top of others": 11,
+  "cabinet/floor-based cabinet": 10,
+  "chair/armchair": 8,
+  "table/coffee table - round": 8,
+  "plants/plants - floor-based": 7,
+  "sofa/ottoman": 6,
+  "sofa/double seat sofa": 6,
+  "table/dining table - square": 5,
+  "table/table": 5,
+  "table/night table": 5,
+  "bed/king-size bed": 4,
+  "media unit/floor-based media unit": 4,
+  "bed/queen-size bed": 4,
+  "storage unit/armoire": 3,
+  "table/coffee table - rectangular": 3,
+  "sofa/ multi seat sofa": 2,
+  "shelf/decorative shelf": 2,
+  "accessory/accessory - on top of others": 2,
+  "table/console table": 2,
+  "accessory/accessory - floor-based": 2,
+  "storage unit/floor-based storage unit": 2,
+  "storage unit/dresser": 2,
+  "lighting/floor lamp": 2,
+  "table/coffee table - irregular shape": 1,
+  "table/coffee table": 1,
+  "bed/single bed": 1,
+  "bed/crib": 1
+ },
+ "params": {
+  "min_rise": 0.08,
+  "tol": 0.06
+ }
+}
+
+wrote outputs/g1b_front_platforms.json  (428 rooms)

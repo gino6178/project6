@@ -1,0 +1,77 @@
+scanning 6813 houses with 12 workers
+  500/6813  rooms=2789
+  1000/6813  rooms=5637
+  1500/6813  rooms=8369
+  2000/6813  rooms=11108
+  2500/6813  rooms=13825
+  3000/6813  rooms=16542
+  3500/6813  rooms=19228
+  4000/6813  rooms=21966
+  4500/6813  rooms=24778
+  5000/6813  rooms=27490
+  5500/6813  rooms=30374
+  6000/6813  rooms=33066
+  6500/6813  rooms=35797
+{
+ "houses": 6813,
+ "rooms": 37529,
+ "multi_elevation_rooms": 0,
+ "multi_pct": 0.0,
+ "spread_percentiles": {
+  "50": 0.0,
+  "90": 0.0,
+  "99": 0.0,
+  "99.9": 0.0
+ },
+ "spread_max": 0.0,
+ "rooms_spread_gt_10cm": 0,
+ "rooms_spread_gt_5cm": 0,
+ "params": {
+  "merge": 0.03,
+  "gap": 0.1,
+  "min_frac": 0.15,
+  "min_area": 4.0
+ },
+ "mesh_types": {
+  "WallInner": 377850,
+  "Baseboard": 348846,
+  "Cabinet": 236768,
+  "WallTop": 214001,
+  "WallBottom": 213856,
+  "Pocket": 160377,
+  "SlabSide": 157478,
+  "WallOuter": 145966,
+  "Floor": 87615,
+  "Door": 52006,
+  "Ceiling": 49952,
+  "Cornice": 39539,
+  "Back": 38029,
+  "Front": 37134,
+  "CustomizedCeiling": 35961,
+  "CustomizedFeatureWall": 33813,
+  "BayWindow": 30285,
+  "Window": 25052,
+  "LightBand": 16775,
+  "Hole": 12622,
+  "ExtrusionCustomizedCeilingModel": 6210,
+  "SmartCustomizedCeiling": 5566,
+  "CustomizedPersonalizedModel": 4788,
+  "SlabBottom": 4511,
+  "CustomizedFixedFurniture": 4090,
+  "CustomizedPlatform": 3925,
+  "Column": 3602,
+  "ExtrusionCustomizedBackgroundWall": 3589,
+  "Customized_wainscot": 2465,
+  "CustomizedFurniture": 2374,
+  "": 1931,
+  "Flue": 1860,
+  "Beam": 1258,
+  "Cabinet/LightBand": 396,
+  "CustomizedBackgroundModel": 362,
+  "SewerPipe": 169,
+  "SlabTop": 1
+ },
+ "multi_by_room_type": {}
+}
+
+wrote outputs/g1_front_elevation.json

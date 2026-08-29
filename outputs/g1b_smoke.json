@@ -1,0 +1,835 @@
+{
+ "summary": {
+  "houses": 300,
+  "rooms_with_platform": 19,
+  "rooms_with_platform_rise_ge_min": 19,
+  "rooms_with_furniture_on_platform": 1,
+  "total_platforms": 56,
+  "rise_percentiles": {
+   "10": 0.1,
+   "25": 0.15,
+   "50": 0.5767,
+   "75": 2.4,
+   "90": 2.6,
+   "99": 3.16
+  },
+  "area_frac_percentiles": {
+   "10": 0.0236,
+   "50": 0.0678,
+   "90": 1.0
+  },
+  "by_room_type": {
+   "MasterBedroom": 4,
+   "LivingRoom": 4,
+   "KidsRoom": 2,
+   "Balcony": 1,
+   "Stairwell": 1,
+   "Bedroom": 1,
+   "Kitchen": 1,
+   "Bathroom": 1,
+   "LivingDiningRoom": 1,
+   "ElderlyRoom": 1,
+   "SecondBedroom": 1,
+   "Corridor": 1
+  },
+  "objects_on_platforms": {
+   "": 18
+  },
+  "params": {
+   "min_rise": 0.08,
+   "tol": 0.06
+  }
+ },
+ "rooms": [
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "Balcony-5658",
+   "type": "Balcony",
+   "floor_h": 0.0,
+   "floor_area": 10.232,
+   "n_platforms": 2,
+   "n_platforms_big": 1,
+   "max_rise": 0.15,
+   "n_objects": 0,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.0,
+     "thickness": 0.0,
+     "area": 11.974,
+     "area_frac": 1.1702,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.15,
+     "thickness": 0.0,
+     "area": 11.974,
+     "area_frac": 1.1702,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "MasterBedroom-2414",
+   "type": "MasterBedroom",
+   "floor_h": 0.0,
+   "floor_area": 38.797,
+   "n_platforms": 1,
+   "n_platforms_big": 1,
+   "max_rise": 0.6,
+   "n_objects": 14,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.6,
+     "thickness": 0.6,
+     "area": 3.144,
+     "area_frac": 0.081,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "KidsRoom-7641",
+   "type": "KidsRoom",
+   "floor_h": 0.0,
+   "floor_area": 22.341,
+   "n_platforms": 5,
+   "n_platforms_big": 5,
+   "max_rise": 2.6,
+   "n_objects": 7,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 2.6,
+     "thickness": 2.6,
+     "area": 3.394,
+     "area_frac": 0.1519,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.547,
+     "thickness": 1.722,
+     "area": 1.05,
+     "area_frac": 0.047,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.6,
+     "thickness": 2.6,
+     "area": 0.567,
+     "area_frac": 0.0254,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.9,
+     "thickness": 0.9,
+     "area": 0.567,
+     "area_frac": 0.0254,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.5,
+     "thickness": 0.5,
+     "area": 5.564,
+     "area_frac": 0.249,
+     "n_vertices": 32,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "035d7de7-b8eb-4ef6-8acc-d49216b97818",
+   "room": "Stairwell-124144",
+   "type": "Stairwell",
+   "floor_h": 0.0,
+   "floor_area": 4.337,
+   "n_platforms": 2,
+   "n_platforms_big": 2,
+   "max_rise": -3.04,
+   "n_objects": 0,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": -3.04,
+     "thickness": 0.0,
+     "area": 5.56,
+     "area_frac": 1.2821,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": -3.04,
+     "thickness": 0.0,
+     "area": 4.199,
+     "area_frac": 0.9683,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "0372081c-e6ef-4cfb-a1bd-ab94a2d917bc",
+   "room": "MasterBedroom-24911",
+   "type": "MasterBedroom",
+   "floor_h": 0.0,
+   "floor_area": 14.865,
+   "n_platforms": 2,
+   "n_platforms_big": 2,
+   "max_rise": 0.5535,
+   "n_objects": 4,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.5535,
+     "thickness": 0.5535,
+     "area": 2.541,
+     "area_frac": 0.1709,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.5535,
+     "thickness": 0.0819,
+     "area": 2.643,
+     "area_frac": 0.1778,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "046dd162-73a3-460e-9a2a-a7f00c19ada9",
+   "room": "Bedroom-108466",
+   "type": "Bedroom",
+   "floor_h": 0.0,
+   "floor_area": 20.811,
+   "n_platforms": 3,
+   "n_platforms_big": 3,
+   "max_rise": 2.4,
+   "n_objects": 8,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 2.4,
+     "thickness": 2.4,
+     "area": 1.62,
+     "area_frac": 0.0778,
+     "n_vertices": 32,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.4,
+     "thickness": 2.4,
+     "area": 0.81,
+     "area_frac": 0.0389,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.4,
+     "thickness": 2.15,
+     "area": 4.054,
+     "area_frac": 0.1948,
+     "n_vertices": 92,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "04bb5026-4d97-48ce-a221-acc961adf8db",
+   "room": "KidsRoom-3260",
+   "type": "KidsRoom",
+   "floor_h": 0.0,
+   "floor_area": 11.787,
+   "n_platforms": 4,
+   "n_platforms_big": 4,
+   "max_rise": 2.7,
+   "n_objects": 3,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 2.7,
+     "thickness": 2.7,
+     "area": 0.546,
+     "area_frac": 0.0463,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.7,
+     "thickness": 2.7,
+     "area": 0.906,
+     "area_frac": 0.0769,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.8,
+     "thickness": 0.8,
+     "area": 0.818,
+     "area_frac": 0.0694,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.78,
+     "thickness": 0.58,
+     "area": 0.549,
+     "area_frac": 0.0466,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "05037f7d-ba12-4861-a728-62fca3460205",
+   "room": "LivingRoom-7095",
+   "type": "LivingRoom",
+   "floor_h": 0.0,
+   "floor_area": 27.891,
+   "n_platforms": 1,
+   "n_platforms_big": 1,
+   "max_rise": 0.15,
+   "n_objects": 17,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.15,
+     "thickness": 0.15,
+     "area": 0.754,
+     "area_frac": 0.027,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "0540bfc9-07ff-4b74-bf09-ceef34250b0a",
+   "room": "LivingRoom-11581",
+   "type": "LivingRoom",
+   "floor_h": 0.0,
+   "floor_area": 55.886,
+   "n_platforms": 2,
+   "n_platforms_big": 2,
+   "max_rise": 0.1,
+   "n_objects": 10,
+   "n_objects_on_platform": 18,
+   "platforms": [
+    {
+     "rise": 0.1,
+     "thickness": 0.1,
+     "area": 55.888,
+     "area_frac": 1.0,
+     "n_vertices": 152,
+     "n_objects_on": 9,
+     "objects_on": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+     ]
+    },
+    {
+     "rise": 0.1,
+     "thickness": 0.0,
+     "area": 55.888,
+     "area_frac": 1.0,
+     "n_vertices": 152,
+     "n_objects_on": 9,
+     "objects_on": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+     ]
+    }
+   ]
+  },
+  {
+   "house": "0540bfc9-07ff-4b74-bf09-ceef34250b0a",
+   "room": "Kitchen-2063",
+   "type": "Kitchen",
+   "floor_h": 0.0,
+   "floor_area": 25.3,
+   "n_platforms": 9,
+   "n_platforms_big": 9,
+   "max_rise": 0.984,
+   "n_objects": 0,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.1,
+     "thickness": 0.1,
+     "area": 25.3,
+     "area_frac": 1.0,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.1,
+     "thickness": 0.0,
+     "area": 25.3,
+     "area_frac": 1.0,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.2,
+     "thickness": 0.1,
+     "area": 1.674,
+     "area_frac": 0.0662,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.2,
+     "thickness": 0.1,
+     "area": 1.674,
+     "area_frac": 0.0662,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.984,
+     "thickness": 0.02,
+     "area": 2.633,
+     "area_frac": 0.1041,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.984,
+     "thickness": 0.02,
+     "area": 1.488,
+     "area_frac": 0.0588,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.984,
+     "thickness": 0.0,
+     "area": 1.488,
+     "area_frac": 0.0588,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.2,
+     "thickness": 0.1,
+     "area": 1.488,
+     "area_frac": 0.0588,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "0540bfc9-07ff-4b74-bf09-ceef34250b0a",
+   "room": "Bathroom-16997",
+   "type": "Bathroom",
+   "floor_h": 0.0,
+   "floor_area": 19.0,
+   "n_platforms": 1,
+   "n_platforms_big": 1,
+   "max_rise": 0.1,
+   "n_objects": 0,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.1,
+     "thickness": 0.1,
+     "area": 19.0,
+     "area_frac": 1.0,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "0572888e-2d3f-4257-ad50-a5d4022a4864",
+   "room": "LivingDiningRoom-52498",
+   "type": "LivingDiningRoom",
+   "floor_h": 0.0,
+   "floor_area": 25.593,
+   "n_platforms": 1,
+   "n_platforms_big": 1,
+   "max_rise": 0.23,
+   "n_objects": 19,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.23,
+     "thickness": 0.23,
+     "area": 3.871,
+     "area_frac": 0.1513,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "064f1b33-9354-41b4-b22c-71a583c5a6ad",
+   "room": "ElderlyRoom-13729",
+   "type": "ElderlyRoom",
+   "floor_h": 0.0,
+   "floor_area": 16.114,
+   "n_platforms": 2,
+   "n_platforms_big": 1,
+   "max_rise": 0.15,
+   "n_objects": 4,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.0,
+     "thickness": 0.0,
+     "area": 3.537,
+     "area_frac": 0.2195,
+     "n_vertices": 32,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.15,
+     "thickness": 0.0,
+     "area": 3.537,
+     "area_frac": 0.2195,
+     "n_vertices": 32,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "064f1b33-9354-41b4-b22c-71a583c5a6ad",
+   "room": "LivingRoom-7090",
+   "type": "LivingRoom",
+   "floor_h": 0.0,
+   "floor_area": 44.609,
+   "n_platforms": 6,
+   "n_platforms_big": 6,
+   "max_rise": 0.775,
+   "n_objects": 13,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.15,
+     "thickness": 0.15,
+     "area": 0.907,
+     "area_frac": 0.0203,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.15,
+     "thickness": 0.15,
+     "area": 2.219,
+     "area_frac": 0.0497,
+     "n_vertices": 32,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.725,
+     "thickness": 0.725,
+     "area": 0.921,
+     "area_frac": 0.0206,
+     "n_vertices": 32,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.725,
+     "thickness": 0.0,
+     "area": 1.051,
+     "area_frac": 0.0236,
+     "n_vertices": 72,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.775,
+     "thickness": 0.625,
+     "area": 1.987,
+     "area_frac": 0.0446,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.618,
+     "thickness": 0.0,
+     "area": 0.879,
+     "area_frac": 0.0197,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "06543b99-4fe3-4be8-be81-f62a83bbee97",
+   "room": "MasterBedroom-193484",
+   "type": "MasterBedroom",
+   "floor_h": 2.9,
+   "floor_area": 39.148,
+   "n_platforms": 3,
+   "n_platforms_big": 3,
+   "max_rise": 3.6,
+   "n_objects": 1,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 3.6,
+     "thickness": 3.6,
+     "area": 2.05,
+     "area_frac": 0.0524,
+     "n_vertices": 132,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.8,
+     "thickness": 2.8,
+     "area": 1.026,
+     "area_frac": 0.0262,
+     "n_vertices": 52,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.8,
+     "thickness": 0.0,
+     "area": 12.164,
+     "area_frac": 0.3107,
+     "n_vertices": 52,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "07b6683b-e9bf-4251-a6a2-5d1390e2eec5",
+   "room": "SecondBedroom-12367",
+   "type": "SecondBedroom",
+   "floor_h": 0.0,
+   "floor_area": 5.482,
+   "n_platforms": 3,
+   "n_platforms_big": 3,
+   "max_rise": 2.6,
+   "n_objects": 1,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 2.6,
+     "thickness": 2.6,
+     "area": 0.719,
+     "area_frac": 0.1312,
+     "n_vertices": 132,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.6,
+     "thickness": 2.6,
+     "area": 0.719,
+     "area_frac": 0.1312,
+     "n_vertices": 132,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.6,
+     "thickness": 2.52,
+     "area": 0.913,
+     "area_frac": 0.1666,
+     "n_vertices": 109,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "091f9482-a920-4d9e-b8e1-7f8bb818132d",
+   "room": "MasterBedroom-44689",
+   "type": "MasterBedroom",
+   "floor_h": 0.0,
+   "floor_area": 18.54,
+   "n_platforms": 1,
+   "n_platforms_big": 1,
+   "max_rise": 0.6,
+   "n_objects": 3,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.6,
+     "thickness": 0.6,
+     "area": 0.747,
+     "area_frac": 0.0403,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "0a9208a5-7930-4d32-99c6-b7a6f370dc7a",
+   "room": "Corridor-6930",
+   "type": "Corridor",
+   "floor_h": 0.0,
+   "floor_area": 10.298,
+   "n_platforms": 2,
+   "n_platforms_big": 2,
+   "max_rise": 2.5,
+   "n_objects": 0,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 2.5,
+     "thickness": 2.5,
+     "area": 2.407,
+     "area_frac": 0.2337,
+     "n_vertices": 44,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 2.5,
+     "thickness": 2.5,
+     "area": 1.814,
+     "area_frac": 0.1761,
+     "n_vertices": 64,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  },
+  {
+   "house": "0ad5052c-bae4-41ed-ae58-e82c4ab63d6e",
+   "room": "LivingRoom-236575",
+   "type": "LivingRoom",
+   "floor_h": 0.0,
+   "floor_area": 24.899,
+   "n_platforms": 7,
+   "n_platforms_big": 6,
+   "max_rise": 0.3,
+   "n_objects": 2,
+   "n_objects_on_platform": 0,
+   "platforms": [
+    {
+     "rise": 0.3,
+     "thickness": 0.0,
+     "area": 0.526,
+     "area_frac": 0.0211,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.3,
+     "thickness": 0.0,
+     "area": 0.527,
+     "area_frac": 0.0212,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.3,
+     "thickness": 0.0,
+     "area": 0.847,
+     "area_frac": 0.034,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.3,
+     "thickness": 0.0,
+     "area": 0.68,
+     "area_frac": 0.0273,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.3,
+     "thickness": 0.0,
+     "area": 1.043,
+     "area_frac": 0.0419,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.3,
+     "thickness": 0.0,
+     "area": 0.949,
+     "area_frac": 0.0381,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    },
+    {
+     "rise": 0.05,
+     "thickness": 0.0,
+     "area": 0.585,
+     "area_frac": 0.0235,
+     "n_vertices": 12,
+     "n_objects_on": 0,
+     "objects_on": []
+    }
+   ]
+  }
+ ]
+}

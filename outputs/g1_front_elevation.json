@@ -1,0 +1,3266 @@
+{
+ "summary": {
+  "houses": 6813,
+  "rooms": 37529,
+  "multi_elevation_rooms": 0,
+  "multi_pct": 0.0,
+  "spread_percentiles": {
+   "50": 0.0,
+   "90": 0.0,
+   "99": 0.0,
+   "99.9": 0.0
+  },
+  "spread_max": 0.0,
+  "rooms_spread_gt_10cm": 0,
+  "rooms_spread_gt_5cm": 0,
+  "params": {
+   "merge": 0.03,
+   "gap": 0.1,
+   "min_frac": 0.15,
+   "min_area": 4.0
+  },
+  "mesh_types": {
+   "WallInner": 377850,
+   "Baseboard": 348846,
+   "Cabinet": 236768,
+   "WallTop": 214001,
+   "WallBottom": 213856,
+   "Pocket": 160377,
+   "SlabSide": 157478,
+   "WallOuter": 145966,
+   "Floor": 87615,
+   "Door": 52006,
+   "Ceiling": 49952,
+   "Cornice": 39539,
+   "Back": 38029,
+   "Front": 37134,
+   "CustomizedCeiling": 35961,
+   "CustomizedFeatureWall": 33813,
+   "BayWindow": 30285,
+   "Window": 25052,
+   "LightBand": 16775,
+   "Hole": 12622,
+   "ExtrusionCustomizedCeilingModel": 6210,
+   "SmartCustomizedCeiling": 5566,
+   "CustomizedPersonalizedModel": 4788,
+   "SlabBottom": 4511,
+   "CustomizedFixedFurniture": 4090,
+   "CustomizedPlatform": 3925,
+   "Column": 3602,
+   "ExtrusionCustomizedBackgroundWall": 3589,
+   "Customized_wainscot": 2465,
+   "CustomizedFurniture": 2374,
+   "": 1931,
+   "Flue": 1860,
+   "Beam": 1258,
+   "Cabinet/LightBand": 396,
+   "CustomizedBackgroundModel": 362,
+   "SewerPipe": 169,
+   "SlabTop": 1
+  },
+  "multi_by_room_type": {}
+ },
+ "multi_rooms": [],
+ "top_spread": [
+  {
+   "house": "00004f89-9aa5-43c2-ae3c-129586be8aaa",
+   "room": "Library-4425",
+   "type": "Library",
+   "floor_area": 6.995,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.995
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00004f89-9aa5-43c2-ae3c-129586be8aaa",
+   "room": "MasterBedroom-5863",
+   "type": "MasterBedroom",
+   "floor_area": 12.884,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.884
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00004f89-9aa5-43c2-ae3c-129586be8aaa",
+   "room": "Kitchen-6335",
+   "type": "Kitchen",
+   "floor_area": 7.963,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.963
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00004f89-9aa5-43c2-ae3c-129586be8aaa",
+   "room": "SecondBedroom-7177",
+   "type": "SecondBedroom",
+   "floor_area": 10.271,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.271
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00004f89-9aa5-43c2-ae3c-129586be8aaa",
+   "room": "Balcony-7793",
+   "type": "Balcony",
+   "floor_area": 6.559,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.559
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00004f89-9aa5-43c2-ae3c-129586be8aaa",
+   "room": "LivingDiningRoom-3474",
+   "type": "LivingDiningRoom",
+   "floor_area": 31.839,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     31.839
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0047c3ab-951b-4182-9082-b9fbf099c142",
+   "room": "LivingDiningRoom-2065",
+   "type": "LivingDiningRoom",
+   "floor_area": 28.14,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     28.14
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0047c3ab-951b-4182-9082-b9fbf099c142",
+   "room": "Library-1274",
+   "type": "Library",
+   "floor_area": 5.46,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.46
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0047c3ab-951b-4182-9082-b9fbf099c142",
+   "room": "MasterBedroom-1812",
+   "type": "MasterBedroom",
+   "floor_area": 10.255,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.255
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0047c3ab-951b-4182-9082-b9fbf099c142",
+   "room": "SecondBedroom-201",
+   "type": "SecondBedroom",
+   "floor_area": 9.247,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.247
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0047c3ab-951b-4182-9082-b9fbf099c142",
+   "room": "Balcony-2829",
+   "type": "Balcony",
+   "floor_area": 6.273,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.273
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0047c3ab-951b-4182-9082-b9fbf099c142",
+   "room": "Kitchen-777",
+   "type": "Kitchen",
+   "floor_area": 4.735,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.735
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00321452-517d-431b-a21b-f52750684910",
+   "room": "LivingDiningRoom-2042",
+   "type": "LivingDiningRoom",
+   "floor_area": 27.916,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     27.916
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00321452-517d-431b-a21b-f52750684910",
+   "room": "Library-14893",
+   "type": "Library",
+   "floor_area": 6.745,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.745
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00321452-517d-431b-a21b-f52750684910",
+   "room": "SecondBedroom-6353",
+   "type": "SecondBedroom",
+   "floor_area": 11.448,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     11.448
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00321452-517d-431b-a21b-f52750684910",
+   "room": "MasterBedroom-7594",
+   "type": "MasterBedroom",
+   "floor_area": 11.563,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     11.563
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0023b7d1-1439-4e5c-9c7b-c34f155ee856",
+   "room": "Bedroom-7177",
+   "type": "Bedroom",
+   "floor_area": 10.391,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.391
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0023b7d1-1439-4e5c-9c7b-c34f155ee856",
+   "room": "Library-4425",
+   "type": "Library",
+   "floor_area": 7.079,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.079
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0023b7d1-1439-4e5c-9c7b-c34f155ee856",
+   "room": "MasterBedroom-5863",
+   "type": "MasterBedroom",
+   "floor_area": 16.266,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     16.266
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0023b7d1-1439-4e5c-9c7b-c34f155ee856",
+   "room": "LivingDiningRoom-3474",
+   "type": "LivingDiningRoom",
+   "floor_area": 35.123,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     35.123
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00337f71-5f56-4d82-8848-b8d194a27d4e",
+   "room": "Kitchen-2722",
+   "type": "Kitchen",
+   "floor_area": 64.887,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     64.887
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00337f71-5f56-4d82-8848-b8d194a27d4e",
+   "room": "MasterBedroom-6776",
+   "type": "MasterBedroom",
+   "floor_area": 21.152,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     21.152
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00110bde-f580-40be-b8bb-88715b338a2a",
+   "room": "Kitchen-38252",
+   "type": "Kitchen",
+   "floor_area": 4.98,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.98
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00110bde-f580-40be-b8bb-88715b338a2a",
+   "room": "Bedroom-43072",
+   "type": "Bedroom",
+   "floor_area": 9.611,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.611
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00110bde-f580-40be-b8bb-88715b338a2a",
+   "room": "LivingDiningRoom-44785",
+   "type": "LivingDiningRoom",
+   "floor_area": 17.709,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     17.709
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00110bde-f580-40be-b8bb-88715b338a2a",
+   "room": "Bathroom-43883",
+   "type": "Bathroom",
+   "floor_area": 5.23,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.23
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071b16d-ed1c-498f-9fd6-74e3f8aa2fb6",
+   "room": "Kitchen-5316",
+   "type": "Kitchen",
+   "floor_area": 10.795,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.795
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071b16d-ed1c-498f-9fd6-74e3f8aa2fb6",
+   "room": "Balcony-3527",
+   "type": "Balcony",
+   "floor_area": 6.323,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.323
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071b16d-ed1c-498f-9fd6-74e3f8aa2fb6",
+   "room": "Bedroom-2729",
+   "type": "Bedroom",
+   "floor_area": 49.9,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     49.9
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071b16d-ed1c-498f-9fd6-74e3f8aa2fb6",
+   "room": "Bedroom-4406",
+   "type": "Bedroom",
+   "floor_area": 10.036,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.036
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "004f900c-468a-4f70-83cc-aa2c98875264",
+   "room": "LivingDiningRoom-27430",
+   "type": "LivingDiningRoom",
+   "floor_area": 36.962,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     36.962
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "004f900c-468a-4f70-83cc-aa2c98875264",
+   "room": "Kitchen-27474",
+   "type": "Kitchen",
+   "floor_area": 6.164,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.164
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "004f900c-468a-4f70-83cc-aa2c98875264",
+   "room": "SecondBedroom-27399",
+   "type": "SecondBedroom",
+   "floor_area": 12.832,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.832
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "004f900c-468a-4f70-83cc-aa2c98875264",
+   "room": "Balcony-21052",
+   "type": "Balcony",
+   "floor_area": 7.098,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.098
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00593e46-062e-4bdd-8ee9-1043387c40f4",
+   "room": "Balcony-24584",
+   "type": "Balcony",
+   "floor_area": 5.492,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.492
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00593e46-062e-4bdd-8ee9-1043387c40f4",
+   "room": "Corridor-91792",
+   "type": "Corridor",
+   "floor_area": 35.569,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     35.569
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00593e46-062e-4bdd-8ee9-1043387c40f4",
+   "room": "DiningRoom-8344",
+   "type": "DiningRoom",
+   "floor_area": 13.442,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.442
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007e1443-462a-4dae-b47c-44cfc6a5a41d",
+   "room": "Bedroom-7050",
+   "type": "Bedroom",
+   "floor_area": 14.237,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.237
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007e1443-462a-4dae-b47c-44cfc6a5a41d",
+   "room": "Balcony-857",
+   "type": "Balcony",
+   "floor_area": 4.074,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.074
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007e1443-462a-4dae-b47c-44cfc6a5a41d",
+   "room": "Aisle-1651",
+   "type": "Aisle",
+   "floor_area": 7.681,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.681
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007e1443-462a-4dae-b47c-44cfc6a5a41d",
+   "room": "LivingDiningRoom-268",
+   "type": "LivingDiningRoom",
+   "floor_area": 8.822,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.822
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "008699e0-8d00-40f3-92b4-72347fa892c1",
+   "room": "Bedroom-518",
+   "type": "Bedroom",
+   "floor_area": 32.291,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     32.291
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "008699e0-8d00-40f3-92b4-72347fa892c1",
+   "room": "Balcony-11838",
+   "type": "Balcony",
+   "floor_area": 10.056,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.056
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "008f0372-b7d0-485f-8d3e-f686dcb68d4f",
+   "room": "LivingDiningRoom-1531",
+   "type": "LivingDiningRoom",
+   "floor_area": 23.81,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     23.81
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "008f0372-b7d0-485f-8d3e-f686dcb68d4f",
+   "room": "SecondBedroom-608",
+   "type": "SecondBedroom",
+   "floor_area": 9.88,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.88
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "008f0372-b7d0-485f-8d3e-f686dcb68d4f",
+   "room": "MasterBedroom-820",
+   "type": "MasterBedroom",
+   "floor_area": 12.168,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.168
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "008f0372-b7d0-485f-8d3e-f686dcb68d4f",
+   "room": "Kitchen-664",
+   "type": "Kitchen",
+   "floor_area": 7.273,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.273
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0054adcb-f48f-4d52-b198-321fd078caa4",
+   "room": "LivingRoom-102834",
+   "type": "LivingRoom",
+   "floor_area": 16.324,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     16.324
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0054adcb-f48f-4d52-b198-321fd078caa4",
+   "room": "DiningRoom-4167",
+   "type": "DiningRoom",
+   "floor_area": 13.238,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.238
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0054adcb-f48f-4d52-b198-321fd078caa4",
+   "room": "Bathroom-4202",
+   "type": "Bathroom",
+   "floor_area": 4.568,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.568
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0054adcb-f48f-4d52-b198-321fd078caa4",
+   "room": "Kitchen-4186",
+   "type": "Kitchen",
+   "floor_area": 7.224,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.224
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "OtherRoom-2776",
+   "type": "OtherRoom",
+   "floor_area": 43.323,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     43.323
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "OtherRoom-11728",
+   "type": "OtherRoom",
+   "floor_area": 24.317,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     24.317
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "Library-6794",
+   "type": "Library",
+   "floor_area": 21.871,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     21.871
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "OtherRoom-12927",
+   "type": "OtherRoom",
+   "floor_area": 31.541,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     31.541
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "OtherRoom-13622",
+   "type": "OtherRoom",
+   "floor_area": 27.685,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     27.685
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "DiningRoom-4603",
+   "type": "DiningRoom",
+   "floor_area": 30.782,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     30.782
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "OtherRoom-32459",
+   "type": "OtherRoom",
+   "floor_area": 52.111,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     52.111
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "OtherRoom-96302",
+   "type": "OtherRoom",
+   "floor_area": 23.033,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     23.033
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "OtherRoom-95390",
+   "type": "OtherRoom",
+   "floor_area": 28.575,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     28.575
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "DiningRoom-1962",
+   "type": "DiningRoom",
+   "floor_area": 36.639,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     36.639
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "002c110c-9bbc-4ab4-affa-4225fb127bad",
+   "room": "OtherRoom-208539",
+   "type": "OtherRoom",
+   "floor_area": 54.488,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     54.488
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00154c06-2ee2-408a-9664-b8fd74742897",
+   "room": "Kitchen-17904",
+   "type": "Kitchen",
+   "floor_area": 10.742,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.742
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00154c06-2ee2-408a-9664-b8fd74742897",
+   "room": "MasterBedroom-18030",
+   "type": "MasterBedroom",
+   "floor_area": 22.954,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     22.954
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00154c06-2ee2-408a-9664-b8fd74742897",
+   "room": "Balcony-14244",
+   "type": "Balcony",
+   "floor_area": 8.537,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.537
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00154c06-2ee2-408a-9664-b8fd74742897",
+   "room": "DiningRoom-17932",
+   "type": "DiningRoom",
+   "floor_area": 19.273,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     19.273
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00154c06-2ee2-408a-9664-b8fd74742897",
+   "room": "LivingRoom-17888",
+   "type": "LivingRoom",
+   "floor_area": 27.177,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     27.177
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00154c06-2ee2-408a-9664-b8fd74742897",
+   "room": "SecondBedroom-17954",
+   "type": "SecondBedroom",
+   "floor_area": 15.914,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     15.914
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00154c06-2ee2-408a-9664-b8fd74742897",
+   "room": "SecondBedroom-17992",
+   "type": "SecondBedroom",
+   "floor_area": 16.729,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     16.729
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0003d406-5f27-4bbf-94cd-1cff7c310ba1",
+   "room": "LivingRoom-54780",
+   "type": "LivingRoom",
+   "floor_area": 14.389,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.389
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0003d406-5f27-4bbf-94cd-1cff7c310ba1",
+   "room": "MasterBathroom-47521",
+   "type": "MasterBathroom",
+   "floor_area": 4.064,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.064
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0003d406-5f27-4bbf-94cd-1cff7c310ba1",
+   "room": "Bedroom-54672",
+   "type": "Bedroom",
+   "floor_area": 18.502,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     18.502
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0003d406-5f27-4bbf-94cd-1cff7c310ba1",
+   "room": "DiningRoom-54730",
+   "type": "DiningRoom",
+   "floor_area": 17.356,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     17.356
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0003d406-5f27-4bbf-94cd-1cff7c310ba1",
+   "room": "SecondBedroom-54641",
+   "type": "SecondBedroom",
+   "floor_area": 10.6,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.6
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0003d406-5f27-4bbf-94cd-1cff7c310ba1",
+   "room": "Kitchen-54849",
+   "type": "Kitchen",
+   "floor_area": 5.52,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.52
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0003d406-5f27-4bbf-94cd-1cff7c310ba1",
+   "room": "SecondBathroom-54877",
+   "type": "SecondBathroom",
+   "floor_area": 4.021,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.021
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0003d406-5f27-4bbf-94cd-1cff7c310ba1",
+   "room": "Balcony-54830",
+   "type": "Balcony",
+   "floor_area": 4.36,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.36
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "003ac11d-2abc-44f8-9836-4354e7dfa543",
+   "room": "Bedroom-9216",
+   "type": "Bedroom",
+   "floor_area": 20.293,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     20.293
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "003ac11d-2abc-44f8-9836-4354e7dfa543",
+   "room": "Bedroom-1573",
+   "type": "Bedroom",
+   "floor_area": 18.334,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     18.334
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "003ac11d-2abc-44f8-9836-4354e7dfa543",
+   "room": "LivingRoom-42387",
+   "type": "LivingRoom",
+   "floor_area": 165.741,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     165.741
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "003ac11d-2abc-44f8-9836-4354e7dfa543",
+   "room": "LivingRoom-9232",
+   "type": "LivingRoom",
+   "floor_area": 16.891,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     16.891
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "003ac11d-2abc-44f8-9836-4354e7dfa543",
+   "room": "LivingRoom-36511",
+   "type": "LivingRoom",
+   "floor_area": 54.043,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     54.043
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "003ac11d-2abc-44f8-9836-4354e7dfa543",
+   "room": "Library-10226",
+   "type": "Library",
+   "floor_area": 35.606,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     35.606
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "003ac11d-2abc-44f8-9836-4354e7dfa543",
+   "room": "Bedroom-42763",
+   "type": "Bedroom",
+   "floor_area": 17.68,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     17.68
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00c0c75e-1c12-46b3-9fc8-0561b1b1b510",
+   "room": "LivingDiningRoom-1344",
+   "type": "LivingDiningRoom",
+   "floor_area": 14.153,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.153
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00c0c75e-1c12-46b3-9fc8-0561b1b1b510",
+   "room": "Kitchen-1784",
+   "type": "Kitchen",
+   "floor_area": 7.695,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.695
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00c0c75e-1c12-46b3-9fc8-0561b1b1b510",
+   "room": "MasterBedroom-649",
+   "type": "MasterBedroom",
+   "floor_area": 9.802,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.802
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00808820-c206-4cc8-98a5-6b7d2ff364af",
+   "room": "CloakRoom-19202",
+   "type": "CloakRoom",
+   "floor_area": 9.738,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.738
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00808820-c206-4cc8-98a5-6b7d2ff364af",
+   "room": "SecondBedroom-19183",
+   "type": "SecondBedroom",
+   "floor_area": 12.192,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.192
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00808820-c206-4cc8-98a5-6b7d2ff364af",
+   "room": "LivingRoom-13790",
+   "type": "LivingRoom",
+   "floor_area": 16.293,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     16.293
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00808820-c206-4cc8-98a5-6b7d2ff364af",
+   "room": "Kitchen-19094",
+   "type": "Kitchen",
+   "floor_area": 14.24,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.24
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00808820-c206-4cc8-98a5-6b7d2ff364af",
+   "room": "MasterBedroom-19148",
+   "type": "MasterBedroom",
+   "floor_area": 10.267,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.267
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0032b185-4914-49e5-b973-f82271674308",
+   "room": "LivingDiningRoom-13661",
+   "type": "LivingDiningRoom",
+   "floor_area": 44.332,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     44.332
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0032b185-4914-49e5-b973-f82271674308",
+   "room": "Bathroom-12780",
+   "type": "Bathroom",
+   "floor_area": 4.769,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.769
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0032b185-4914-49e5-b973-f82271674308",
+   "room": "MasterBathroom-11710",
+   "type": "MasterBathroom",
+   "floor_area": 4.817,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.817
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0032b185-4914-49e5-b973-f82271674308",
+   "room": "SecondBedroom-12951",
+   "type": "SecondBedroom",
+   "floor_area": 13.614,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.614
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0032b185-4914-49e5-b973-f82271674308",
+   "room": "Bedroom-11927",
+   "type": "Bedroom",
+   "floor_area": 19.68,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     19.68
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0032b185-4914-49e5-b973-f82271674308",
+   "room": "Kitchen-10949",
+   "type": "Kitchen",
+   "floor_area": 6.0,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.0
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00add26c-7a26-4a61-b192-b97aa493b3f3",
+   "room": "LivingRoom-76661",
+   "type": "LivingRoom",
+   "floor_area": 13.789,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.789
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00add26c-7a26-4a61-b192-b97aa493b3f3",
+   "room": "Kitchen-177441",
+   "type": "Kitchen",
+   "floor_area": 4.663,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.663
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00add26c-7a26-4a61-b192-b97aa493b3f3",
+   "room": "Bedroom-74542",
+   "type": "Bedroom",
+   "floor_area": 8.525,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.525
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00add26c-7a26-4a61-b192-b97aa493b3f3",
+   "room": "MasterBedroom-66708",
+   "type": "MasterBedroom",
+   "floor_area": 8.845,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.845
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00add26c-7a26-4a61-b192-b97aa493b3f3",
+   "room": "Library-308495",
+   "type": "Library",
+   "floor_area": 4.218,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.218
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0018b6c8-c3b6-4fb8-a640-4b9b0b763254",
+   "room": "MasterBedroom-282636",
+   "type": "MasterBedroom",
+   "floor_area": 13.977,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.977
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0018b6c8-c3b6-4fb8-a640-4b9b0b763254",
+   "room": "LivingRoom-282598",
+   "type": "LivingRoom",
+   "floor_area": 31.991,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     31.991
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0018b6c8-c3b6-4fb8-a640-4b9b0b763254",
+   "room": "Terrace-279576",
+   "type": "Terrace",
+   "floor_area": 25.282,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     25.282
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0018b6c8-c3b6-4fb8-a640-4b9b0b763254",
+   "room": "SecondBedroom-282617",
+   "type": "SecondBedroom",
+   "floor_area": 7.397,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.397
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0018b6c8-c3b6-4fb8-a640-4b9b0b763254",
+   "room": "Bathroom-282652",
+   "type": "Bathroom",
+   "floor_area": 4.17,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.17
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0018b6c8-c3b6-4fb8-a640-4b9b0b763254",
+   "room": "Kitchen-282564",
+   "type": "Kitchen",
+   "floor_area": 5.413,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.413
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "009ccdf2-5f3f-46e7-a562-10da2b2e3bb9",
+   "room": "LivingRoom-64720",
+   "type": "LivingRoom",
+   "floor_area": 36.786,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     36.786
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "009ccdf2-5f3f-46e7-a562-10da2b2e3bb9",
+   "room": "Bedroom-65400",
+   "type": "Bedroom",
+   "floor_area": 10.339,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.339
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "009ccdf2-5f3f-46e7-a562-10da2b2e3bb9",
+   "room": "Bathroom-63837",
+   "type": "Bathroom",
+   "floor_area": 4.128,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.128
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "009ccdf2-5f3f-46e7-a562-10da2b2e3bb9",
+   "room": "Kitchen-65389",
+   "type": "Kitchen",
+   "floor_area": 6.196,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.196
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "009ccdf2-5f3f-46e7-a562-10da2b2e3bb9",
+   "room": "MasterBedroom-63852",
+   "type": "MasterBedroom",
+   "floor_area": 16.142,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     16.142
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "009ccdf2-5f3f-46e7-a562-10da2b2e3bb9",
+   "room": "Library-62816",
+   "type": "Library",
+   "floor_area": 6.898,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.898
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071fae9-a2ce-481e-8a37-a2d307e1213d",
+   "room": "KidsRoom-199518",
+   "type": "KidsRoom",
+   "floor_area": 12.496,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.496
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071fae9-a2ce-481e-8a37-a2d307e1213d",
+   "room": "MasterBedroom-199689",
+   "type": "MasterBedroom",
+   "floor_area": 15.146,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     15.146
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071fae9-a2ce-481e-8a37-a2d307e1213d",
+   "room": "Kitchen-199484",
+   "type": "Kitchen",
+   "floor_area": 6.446,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.446
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071fae9-a2ce-481e-8a37-a2d307e1213d",
+   "room": "Balcony-199784",
+   "type": "Balcony",
+   "floor_area": 4.864,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.864
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071fae9-a2ce-481e-8a37-a2d307e1213d",
+   "room": "LivingDiningRoom-199629",
+   "type": "LivingDiningRoom",
+   "floor_area": 40.049,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     40.049
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071fae9-a2ce-481e-8a37-a2d307e1213d",
+   "room": "Bathroom-199546",
+   "type": "Bathroom",
+   "floor_area": 4.676,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.676
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071fae9-a2ce-481e-8a37-a2d307e1213d",
+   "room": "SecondBedroom-199664",
+   "type": "SecondBedroom",
+   "floor_area": 12.702,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.702
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0071fae9-a2ce-481e-8a37-a2d307e1213d",
+   "room": "Bathroom-199752",
+   "type": "Bathroom",
+   "floor_area": 4.872,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.872
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ad8345-45e0-45b3-867d-4a3c88c2517a",
+   "room": "Balcony-46309",
+   "type": "Balcony",
+   "floor_area": 6.116,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.116
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ad8345-45e0-45b3-867d-4a3c88c2517a",
+   "room": "LivingRoom-46201",
+   "type": "LivingRoom",
+   "floor_area": 44.372,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     44.372
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ad8345-45e0-45b3-867d-4a3c88c2517a",
+   "room": "MasterBedroom-46277",
+   "type": "MasterBedroom",
+   "floor_area": 14.674,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.674
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ad8345-45e0-45b3-867d-4a3c88c2517a",
+   "room": "Library-42049",
+   "type": "Library",
+   "floor_area": 8.461,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.461
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ad8345-45e0-45b3-867d-4a3c88c2517a",
+   "room": "Kitchen-46170",
+   "type": "Kitchen",
+   "floor_area": 9.818,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.818
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ad8345-45e0-45b3-867d-4a3c88c2517a",
+   "room": "Bathroom-46255",
+   "type": "Bathroom",
+   "floor_area": 5.376,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.376
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ad8345-45e0-45b3-867d-4a3c88c2517a",
+   "room": "LaundryRoom-46151",
+   "type": "LaundryRoom",
+   "floor_area": 4.103,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.103
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ad8345-45e0-45b3-867d-4a3c88c2517a",
+   "room": "SecondBedroom-46220",
+   "type": "SecondBedroom",
+   "floor_area": 12.105,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.105
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ecd021-64bb-4bc4-b754-1796d2a12965",
+   "room": "LivingDiningRoom-84752",
+   "type": "LivingDiningRoom",
+   "floor_area": 18.791,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     18.791
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ecd021-64bb-4bc4-b754-1796d2a12965",
+   "room": "Bedroom-83832",
+   "type": "Bedroom",
+   "floor_area": 9.779,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.779
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ecd021-64bb-4bc4-b754-1796d2a12965",
+   "room": "Bedroom-83361",
+   "type": "Bedroom",
+   "floor_area": 9.36,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.36
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "013d6a38-6fa2-4e16-9903-53921f86114a",
+   "room": "LivingRoom-5033",
+   "type": "LivingRoom",
+   "floor_area": 14.327,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.327
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "013d6a38-6fa2-4e16-9903-53921f86114a",
+   "room": "DiningRoom-9584",
+   "type": "DiningRoom",
+   "floor_area": 5.016,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.016
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "013d6a38-6fa2-4e16-9903-53921f86114a",
+   "room": "Bedroom-4457",
+   "type": "Bedroom",
+   "floor_area": 7.908,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.908
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "013d6a38-6fa2-4e16-9903-53921f86114a",
+   "room": "Kitchen-8512",
+   "type": "Kitchen",
+   "floor_area": 5.51,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.51
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011da194-aa84-4a98-bf9a-afd18357819a",
+   "room": "SecondBedroom-373",
+   "type": "SecondBedroom",
+   "floor_area": 7.906,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.906
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011da194-aa84-4a98-bf9a-afd18357819a",
+   "room": "LivingDiningRoom-840",
+   "type": "LivingDiningRoom",
+   "floor_area": 24.388,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     24.388
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011da194-aa84-4a98-bf9a-afd18357819a",
+   "room": "MasterBedroom-323",
+   "type": "MasterBedroom",
+   "floor_area": 11.828,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     11.828
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011da194-aa84-4a98-bf9a-afd18357819a",
+   "room": "Kitchen-1851",
+   "type": "Kitchen",
+   "floor_area": 6.274,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.274
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "01492580-b04d-4865-932d-c6fc225ba3b8",
+   "room": "Kitchen-34539",
+   "type": "Kitchen",
+   "floor_area": 6.041,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.041
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "01492580-b04d-4865-932d-c6fc225ba3b8",
+   "room": "Bedroom-34416",
+   "type": "Bedroom",
+   "floor_area": 13.918,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.918
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "01492580-b04d-4865-932d-c6fc225ba3b8",
+   "room": "Bedroom-34479",
+   "type": "Bedroom",
+   "floor_area": 10.466,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.466
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "01492580-b04d-4865-932d-c6fc225ba3b8",
+   "room": "Balcony-28991",
+   "type": "Balcony",
+   "floor_area": 4.002,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.002
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "01492580-b04d-4865-932d-c6fc225ba3b8",
+   "room": "LivingDiningRoom-34353",
+   "type": "LivingDiningRoom",
+   "floor_area": 28.299,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     28.299
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "01492580-b04d-4865-932d-c6fc225ba3b8",
+   "room": "Library-34441",
+   "type": "Library",
+   "floor_area": 6.322,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.322
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0156308f-fe4e-4916-90c3-9f498c0d9e9c",
+   "room": "LivingDiningRoom-31720",
+   "type": "LivingDiningRoom",
+   "floor_area": 38.303,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     38.303
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0156308f-fe4e-4916-90c3-9f498c0d9e9c",
+   "room": "Kitchen-31159",
+   "type": "Kitchen",
+   "floor_area": 8.719,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.719
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0156308f-fe4e-4916-90c3-9f498c0d9e9c",
+   "room": "Bedroom-30358",
+   "type": "Bedroom",
+   "floor_area": 14.067,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.067
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0156308f-fe4e-4916-90c3-9f498c0d9e9c",
+   "room": "Bedroom-29486",
+   "type": "Bedroom",
+   "floor_area": 8.6,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.6
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0156308f-fe4e-4916-90c3-9f498c0d9e9c",
+   "room": "Bathroom-31106",
+   "type": "Bathroom",
+   "floor_area": 5.502,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.502
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0156308f-fe4e-4916-90c3-9f498c0d9e9c",
+   "room": "Bathroom-29895",
+   "type": "Bathroom",
+   "floor_area": 5.432,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.432
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0106f9d2-5779-457b-9b8b-72942373d42e",
+   "room": "MasterBedroom-10670",
+   "type": "MasterBedroom",
+   "floor_area": 11.402,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     11.402
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0106f9d2-5779-457b-9b8b-72942373d42e",
+   "room": "LivingDiningRoom-10723",
+   "type": "LivingDiningRoom",
+   "floor_area": 30.98,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     30.98
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0106f9d2-5779-457b-9b8b-72942373d42e",
+   "room": "Library-10692",
+   "type": "Library",
+   "floor_area": 8.878,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.878
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0106f9d2-5779-457b-9b8b-72942373d42e",
+   "room": "Kitchen-7784",
+   "type": "Kitchen",
+   "floor_area": 5.23,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.23
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0106f9d2-5779-457b-9b8b-72942373d42e",
+   "room": "Bathroom-10742",
+   "type": "Bathroom",
+   "floor_area": 5.359,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.359
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "0106f9d2-5779-457b-9b8b-72942373d42e",
+   "room": "LivingDiningRoom-7662",
+   "type": "LivingDiningRoom",
+   "floor_area": 21.372,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     21.372
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ecd5d3-d369-459f-8300-38fc159823dc",
+   "room": "LivingDiningRoom-6151",
+   "type": "LivingDiningRoom",
+   "floor_area": 46.837,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     46.837
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ecd5d3-d369-459f-8300-38fc159823dc",
+   "room": "SecondBedroom-6249",
+   "type": "SecondBedroom",
+   "floor_area": 12.42,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.42
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00ecd5d3-d369-459f-8300-38fc159823dc",
+   "room": "MasterBedroom-6296",
+   "type": "MasterBedroom",
+   "floor_area": 16.264,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     16.264
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011b264d-e2ef-426a-a4d5-d99de5bc68e2",
+   "room": "LivingRoom-29450",
+   "type": "LivingRoom",
+   "floor_area": 45.87,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     45.87
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011b264d-e2ef-426a-a4d5-d99de5bc68e2",
+   "room": "MasterBedroom-29563",
+   "type": "MasterBedroom",
+   "floor_area": 14.503,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.503
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011b264d-e2ef-426a-a4d5-d99de5bc68e2",
+   "room": "SecondBedroom-24706",
+   "type": "SecondBedroom",
+   "floor_area": 10.584,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.584
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011b264d-e2ef-426a-a4d5-d99de5bc68e2",
+   "room": "SecondBedroom-29519",
+   "type": "SecondBedroom",
+   "floor_area": 11.433,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     11.433
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011b264d-e2ef-426a-a4d5-d99de5bc68e2",
+   "room": "MasterBathroom-29491",
+   "type": "MasterBathroom",
+   "floor_area": 4.409,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.409
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "011b264d-e2ef-426a-a4d5-d99de5bc68e2",
+   "room": "Kitchen-29579",
+   "type": "Kitchen",
+   "floor_area": 5.807,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.807
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "Balcony-5658",
+   "type": "Balcony",
+   "floor_area": 10.232,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     10.232
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "LivingDiningRoom-6533",
+   "type": "LivingDiningRoom",
+   "floor_area": 63.015,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     63.015
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "Library-13550",
+   "type": "Library",
+   "floor_area": 7.862,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.862
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "MasterBathroom-2877",
+   "type": "MasterBathroom",
+   "floor_area": 8.864,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.864
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "MasterBedroom-2414",
+   "type": "MasterBedroom",
+   "floor_area": 38.797,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     38.797
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "KidsRoom-7641",
+   "type": "KidsRoom",
+   "floor_area": 22.341,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     22.341
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00b88e19-d106-4ab8-a322-31c494a0a6b9",
+   "room": "Kitchen-4467",
+   "type": "Kitchen",
+   "floor_area": 14.112,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     14.112
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007c0c17-cd85-400a-bdf0-80f0e1eefe2d",
+   "room": "Bathroom-6525",
+   "type": "Bathroom",
+   "floor_area": 4.53,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.53
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007c0c17-cd85-400a-bdf0-80f0e1eefe2d",
+   "room": "SecondBedroom-33125",
+   "type": "SecondBedroom",
+   "floor_area": 8.725,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.725
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007c0c17-cd85-400a-bdf0-80f0e1eefe2d",
+   "room": "Bedroom-7995",
+   "type": "Bedroom",
+   "floor_area": 8.91,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.91
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007c0c17-cd85-400a-bdf0-80f0e1eefe2d",
+   "room": "Corridor-52564",
+   "type": "Corridor",
+   "floor_area": 37.077,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     37.077
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007c0c17-cd85-400a-bdf0-80f0e1eefe2d",
+   "room": "MasterBedroom-36811",
+   "type": "MasterBedroom",
+   "floor_area": 13.488,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.488
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007c0c17-cd85-400a-bdf0-80f0e1eefe2d",
+   "room": "OtherRoom-15543",
+   "type": "OtherRoom",
+   "floor_area": 7.452,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.452
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007c0c17-cd85-400a-bdf0-80f0e1eefe2d",
+   "room": "Kitchen-10467",
+   "type": "Kitchen",
+   "floor_area": 7.612,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     7.612
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "007c0c17-cd85-400a-bdf0-80f0e1eefe2d",
+   "room": "Balcony-4556",
+   "type": "Balcony",
+   "floor_area": 5.801,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.801
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00de1e24-ab10-4aef-bb72-130ca18d017c",
+   "room": "Kitchen-17634",
+   "type": "Kitchen",
+   "floor_area": 5.517,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.517
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00de1e24-ab10-4aef-bb72-130ca18d017c",
+   "room": "Bedroom-88021",
+   "type": "Bedroom",
+   "floor_area": 13.866,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.866
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00de1e24-ab10-4aef-bb72-130ca18d017c",
+   "room": "Library-12973",
+   "type": "Library",
+   "floor_area": 9.504,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     9.504
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00de1e24-ab10-4aef-bb72-130ca18d017c",
+   "room": "LivingDiningRoom-17615",
+   "type": "LivingDiningRoom",
+   "floor_area": 23.219,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     23.219
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00de1e24-ab10-4aef-bb72-130ca18d017c",
+   "room": "CloakRoom-17672",
+   "type": "CloakRoom",
+   "floor_area": 5.378,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.378
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "016e8e9e-143b-4f12-9679-3ca930a1b6d6",
+   "room": "LivingDiningRoom-34678",
+   "type": "LivingDiningRoom",
+   "floor_area": 25.699,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     25.699
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "016e8e9e-143b-4f12-9679-3ca930a1b6d6",
+   "room": "Kitchen-3130",
+   "type": "Kitchen",
+   "floor_area": 5.087,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     5.087
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "016e8e9e-143b-4f12-9679-3ca930a1b6d6",
+   "room": "MasterBedroom-3171",
+   "type": "MasterBedroom",
+   "floor_area": 11.21,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     11.21
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "016e8e9e-143b-4f12-9679-3ca930a1b6d6",
+   "room": "SecondBedroom-39284",
+   "type": "SecondBedroom",
+   "floor_area": 8.064,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     8.064
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00fe8139-76e8-42b4-bb41-7f9f085ac351",
+   "room": "Library-15468",
+   "type": "Library",
+   "floor_area": 12.554,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     12.554
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00fe8139-76e8-42b4-bb41-7f9f085ac351",
+   "room": "SecondBedroom-15597",
+   "type": "SecondBedroom",
+   "floor_area": 13.699,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     13.699
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00fe8139-76e8-42b4-bb41-7f9f085ac351",
+   "room": "MasterBedroom-15559",
+   "type": "MasterBedroom",
+   "floor_area": 19.478,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     19.478
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00fe8139-76e8-42b4-bb41-7f9f085ac351",
+   "room": "LivingRoom-15506",
+   "type": "LivingRoom",
+   "floor_area": 21.37,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     21.37
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00fe8139-76e8-42b4-bb41-7f9f085ac351",
+   "room": "Kitchen-15446",
+   "type": "Kitchen",
+   "floor_area": 6.949,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     6.949
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00fe8139-76e8-42b4-bb41-7f9f085ac351",
+   "room": "SecondBathroom-15625",
+   "type": "SecondBathroom",
+   "floor_area": 4.197,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.197
+    ]
+   ],
+   "multi": false
+  },
+  {
+   "house": "00fe8139-76e8-42b4-bb41-7f9f085ac351",
+   "room": "MasterBathroom-15698",
+   "type": "MasterBathroom",
+   "floor_area": 4.526,
+   "spread": 0.0,
+   "n_tiers": 1,
+   "n_tiers_big": 1,
+   "tiers": [
+    [
+     0.0,
+     4.526
+    ]
+   ],
+   "multi": false
+  }
+ ]
+}
