@@ -6,13 +6,20 @@ planar floor), so it cannot supervise this task directly.  What it does have is
 groupings, real assets.  This module keeps all of that and changes only the
 floor underneath it.
 
-The idea that makes the result usable as supervision is to **grow the elevated
-region out of a furniture group rather than stamping a shape onto the room**.  A
-real sunken lounge is sized to the conversation group that sits in it and a real
-tatami platform is sized to the bed on top of it, so growing from the group both
-matches how the feature is designed and guarantees the region boundary never
-cuts through an object — which is exactly the failure (tier straddling) the
-evaluation is meant to catch in *generated* layouts, not in ground truth.
+The region is taken off a wall at a depth drawn from the measured distribution
+of real elevated floors — architecture first, furniture second.  The first
+version grew the region out of the furniture group instead, on the reasoning
+that a sunken lounge is sized to the conversation group in it.  That was
+measurably wrong: retargeting the same layouts into 34-49 m2 rooms left the
+region at 0.354 of the floor against a real 0.271, because furniture fills a
+room proportionally, so a furniture-derived region is the same fraction of any
+room.  Real elevated floors are sized by structure and the furniture arrives
+afterwards.  ``strategy="furniture"`` keeps the old rule for comparison.
+
+Whichever rule picks the region, objects it would cut are moved the smallest
+distance that clears the edge, and the scene is checked with the evaluation's
+own code before it is written: ground truth must not contain the failures the
+benchmark measures.
 
 Each room yields a paired sample: the original flat scene and its elevated
 counterpart with the same objects.  That pairing is what makes the controlled
@@ -324,6 +331,85 @@ def _note(stats, why):
     return None
 
 
+def architectural_region(room: Polygon, yaw: float, target_frac: float,
+                         rng: np.random.Generator, openings=(),
+                         min_depth: float = 0.9) -> Polygon | None:
+    """Size the elevated region from the room's structure, not its furniture.
+
+    Growing the region out of a furniture group was the original rule, and it is
+    measurably wrong: retargeting the same layouts into 34-49 m2 rooms leaves the
+    region at 0.354 of the floor against a real 0.271, because furniture fills a
+    room proportionally.  Real elevated floors are sized by architecture -- a bay
+    window recess, a structural split, a mezzanine over part of a span -- and the
+    furniture arrives afterwards.
+
+    So the region is a band taken off one wall (or a rectangular bay in a
+    corner), with its depth chosen to hit a target fraction drawn from the
+    measured distribution.  Two things follow for free: the fraction matches by
+    construction, and a wall-anchored band always leaves the datum connected, so
+    the "sunken area covering 56 % of the room leaves a narrow ring" artefact
+    cannot arise.
+    """
+    R, Rb = _rot(yaw)
+    rb = _iv(room, R)
+    lo, hi = rb[0].copy(), rb[1].copy()
+    span = hi - lo
+    if min(span) < 2 * min_depth:
+        return None
+
+    k = int(rng.integers(2))                     # which axis the wall runs along
+    side = int(rng.integers(2))                  # near or far wall
+    corner = rng.random() < 0.45                 # a bay rather than a full band
+
+    # depth that lands on the target area, measured against the room's own area
+    want = float(np.clip(target_frac, 0.03, 0.66)) * room.area
+    width = span[1 - k]
+    if corner:
+        # a bay occupies part of the wall too, so it is deeper for the same area
+        frac_w = float(rng.uniform(0.45, 0.9))
+        width *= frac_w
+    depth = want / max(width, 1e-6)
+    depth = float(np.clip(depth, min_depth, span[k] - min_depth))
+
+    a, b = lo.copy(), hi.copy()
+    if side == 0:
+        b[k] = lo[k] + depth
+    else:
+        a[k] = hi[k] - depth
+    if corner:
+        w = width
+        if rng.random() < 0.5:
+            b[1 - k] = a[1 - k] + w
+        else:
+            a[1 - k] = b[1 - k] - w
+
+    out = _largest(_rect(a, b, Rb).intersection(room))
+    if out is None or out.area < 1.2:
+        return None
+    # a step landing in a doorway is not a step
+    for d in _door_polys_from(openings):
+        if out.intersection(d).area > 0.2 * d.area:
+            return None
+    return out
+
+
+def _door_polys_from(openings, depth: float = 0.75):
+    out = []
+    for op in openings or []:
+        if getattr(op, "kind", "") != "door":
+            continue
+        p0 = np.asarray(op.p0, dtype=float)[:2]
+        p1 = np.asarray(op.p1, dtype=float)[:2]
+        d = p1 - p0
+        n = np.array([-d[1], d[0]])
+        ln = np.linalg.norm(n)
+        if ln < 1e-9:
+            continue
+        n = n / ln * depth
+        out.append(Polygon([p0 - n, p1 - n, p1 + n, p0 + n]))
+    return out
+
+
 def _resolve_cuts(region: Polygon, objs: Sequence, yaw: float,
                   room: Polygon, max_iter: int = 4,
                   stats: dict | None = None,
@@ -490,6 +576,49 @@ def _clear_runs(a: np.ndarray, b: np.ndarray, lo: Tier, hi: Tier,
     return runs
 
 
+def clear_landing(region: Polygon, room_boundary, objs: Sequence,
+                  depth: float = 0.75, max_shift: float = 0.6) -> bool:
+    """Push furniture off the strip where the step lands.
+
+    Transition width is measured at 1.9 m against a real 2.9 m, and the reason
+    is not the region's shape: ``_clear_runs`` only accepts a stretch of edge
+    whose treads land on free floor, and nothing had cleared that floor.  A
+    designer does not put a sofa against the lip of a sunken lounge, so the
+    strip along the region's interior-facing edge is cleared first and the runs
+    get long on their own.
+
+    Measured and **off by default**.  It does widen the transition (furniture
+    strategy: 1.9 -> 2.8 m against a real 2.9), but it costs half the yield and,
+    worse, pushes objects into neighbouring tiers: ground-truth violation rate
+    goes from 0.015 to 0.44 with it on.  Clearing the strip needs to be part of
+    the placement rather than a post-hoc shove before it is usable.
+    """
+    from shapely.ops import unary_union
+    edge = region.boundary.difference(room_boundary.buffer(0.05))
+    if edge.is_empty:
+        return True
+    strip = edge.buffer(depth, cap_style=2)
+    for o in objs:
+        fp = _footprint(o)
+        if fp.area < 1e-9 or fp.intersection(strip).area / fp.area < 0.12:
+            continue
+        c = np.asarray(fp.centroid.coords[0])
+        n = np.asarray(strip.centroid.coords[0]) - c
+        d = np.linalg.norm(n)
+        u = -(n / d) if d > 1e-9 else np.array([1.0, 0.0])
+        moved = False
+        for step in np.arange(0.1, max_shift + 1e-9, 0.1):
+            cand = translate(fp, float(u[0] * step), float(u[1] * step))
+            if cand.intersection(strip).area / cand.area < 0.12:
+                o.position[0] += float(u[0] * step)
+                o.position[1] += float(u[1] * step)
+                moved = True
+                break
+        if not moved:
+            return False
+    return True
+
+
 def _transitions_for(region: Polygon, room_boundary, lo: Tier, hi: Tier,
                      blocked=None, min_width: float = 0.60) -> list[Transition]:
     """One transition per stretch of shared edge long enough to walk over.
@@ -562,7 +691,9 @@ def _transitions_for(region: Polygon, room_boundary, lo: Tier, hi: Tier,
 def lift_scene(scene, rng: np.random.Generator,
                program: ElevationProgram | None = None,
                min_datum_frac: float = 0.30,
-               stats: dict | None = None) -> ElevScene | None:
+               stats: dict | None = None,
+               strategy: str = "architecture",
+               clear_landing_strip: bool = False) -> ElevScene | None:
     """Turn a flat ReRoom ``Scene`` into a multi-elevation ``ElevScene``.
 
     Returns ``None`` when the room admits no plausible elevation program — a
@@ -632,26 +763,55 @@ def lift_scene(scene, rng: np.random.Generator,
         if region is None:
             return drop('wall_snap_empty')
 
-    # Draw the size real designers would give this feature, then let the two
-    # snapping policies compete for it.  "outward" always yields a region and
-    # tends to be too large; "nearest" matches the real distribution but can
-    # shrink past a seed and fail.  Choosing between them per room gets the
-    # measured distribution without paying "nearest"'s rejection rate.
-    target = float(rng.choice(GEOM_PRIOR["area_frac"])) \
-        if len(GEOM_PRIOR["area_frac"]) else 0.27
-    cands = []
-    for pol in ("nearest", "outward"):
-        r = _resolve_cuts(region, grounded, yaw, room_poly,
-                          stats=stats if pol == "outward" else None,
-                          seeds=seeds, policy=pol)
-        if r is not None:
-            cands.append((abs(r.area / room_poly.area - target), r))
-    if not cands:
-        return drop('cuts_unresolvable')
-    region = min(cands, key=lambda t: t[0])[1]
+    if strategy == "architecture":
+        # The region comes off a wall at a depth that hits the drawn size.  The
+        # side is chosen to prefer the one the program's anchor sits on, because
+        # a tatami platform is built where the bed goes even though its size is
+        # a design decision rather than the bed's bounding box.
+        tf = (float(rng.choice(GEOM_PRIOR["area_frac"]))
+              if len(GEOM_PRIOR["area_frac"]) else 0.27)
+        tf = float(np.clip(tf, min(program.area_frac), max(program.area_frac)))
+        anchors = anchored or seeds
+        best, best_score = None, -1e9
+        for _ in range(12):
+            cand = architectural_region(room_poly, yaw, tf, rng,
+                                        getattr(scene.room, "openings", ()))
+            if cand is None:
+                continue
+            hit = 0.0
+            for o in anchors:
+                fp = _footprint(o)
+                if fp.area > 1e-9:
+                    hit += cand.intersection(fp).area / fp.area
+            score = hit - 3.0 * abs(cand.area / room_poly.area - tf)
+            if score > best_score:
+                best, best_score = cand, score
+        if best is None:
+            return drop("arch_region_empty")
+        region = best
+    else:
+        # Grow from the furniture group, then let two snapping policies compete
+        # for a size drawn from the measured distribution.  "outward" always
+        # yields a region and tends to be too large; "nearest" matches the real
+        # distribution but can shrink past a seed and fail.
+        target = (float(rng.choice(GEOM_PRIOR["area_frac"]))
+                  if len(GEOM_PRIOR["area_frac"]) else 0.27)
+        cands = []
+        for pol in ("nearest", "outward"):
+            r = _resolve_cuts(region, grounded, yaw, room_poly,
+                              stats=stats if pol == "outward" else None,
+                              seeds=seeds, policy=pol)
+            if r is not None:
+                cands.append((abs(r.area / room_poly.area - target), r))
+        if not cands:
+            return drop("cuts_unresolvable")
+        region = min(cands, key=lambda t: t[0])[1]
 
     if not nudge_off_boundary(region, grounded, room_poly, stats=stats):
         return drop('nudge_failed')
+    if clear_landing_strip and not clear_landing(region, room_poly.boundary,
+                                                 grounded):
+        return drop('landing_not_clearable')
 
     frac = region.area / room_poly.area
     if not (program.area_frac[0] <= frac <= program.area_frac[1]):
@@ -737,7 +897,8 @@ def lift_scene(scene, rng: np.random.Generator,
     # detect, so the scene is checked with the same code the evaluation uses.
     from ..eval.violations import violations
     bad = [v for v in violations(es)
-           if v.kind in ("overhang", "straddling", "datum", "step_blocked")]
+           if v.kind in ("overhang", "embedded", "straddling", "datum",
+                         "step_blocked")]
     if bad:
         return drop("gt_violation:" + bad[0].kind)
     return es

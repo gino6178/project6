@@ -97,7 +97,8 @@ def _init():
         _G["cats"] = json.load(fh)
 
 
-def do_house(path: str, seed: int, tries: int, max_variants: int = 3):
+def do_house(path: str, seed: int, tries: int, max_variants: int = 3,
+             strategy: str = "architecture"):
     from reroom.data.threed_front import parse_scene_file
     if "bb" not in _G:
         _init()
@@ -118,7 +119,7 @@ def do_house(path: str, seed: int, tries: int, max_variants: int = 3):
         variants, seen_keys = [], set()
         for _ in range(tries):
             try:
-                e = lift_scene(sc, rng, stats=stats)
+                e = lift_scene(sc, rng, stats=stats, strategy=strategy)
             except Exception as exc:
                 # 3D-FRONT floor polygons include self-touching rings that GEOS
                 # refuses to node; one bad room must not take the house with it
@@ -152,6 +153,10 @@ def main():
     ap.add_argument("--variants", type=int, default=3,
                     help="distinct elevation programs kept per room")
     ap.add_argument("--shard", type=int, default=2000, help="pairs per shard")
+    ap.add_argument("--strategy", default="architecture",
+                    choices=("architecture", "furniture"),
+                    help="how the elevated region is sized: off a wall at a "
+                         "measured depth, or grown from the furniture group")
     ap.add_argument("--match-real", action="store_true",
                     help="thin the corpus so the region-size distribution "
                          "matches the measured one")
@@ -170,7 +175,8 @@ def main():
 
     with ProcessPoolExecutor(max_workers=args.workers, initializer=_init) as ex:
         futs = {ex.submit(do_house, os.path.join(args.root, f),
-                          args.seed + i, args.tries, args.variants): f
+                          args.seed + i, args.tries, args.variants,
+                          args.strategy): f
                 for i, f in enumerate(files)}
         done = 0
         for fut in as_completed(futs):
@@ -209,6 +215,7 @@ def main():
         "rejections": {k: v for k, v in stats.most_common()
                        if k not in ("rooms", "lifted")},
         "shards": shard,
+        "strategy": args.strategy,
         "area_frac_matching": match,
     }
     with open(os.path.join(args.out, "index.json"), "w") as fh:

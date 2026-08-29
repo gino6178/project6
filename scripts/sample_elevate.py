@@ -41,6 +41,8 @@ from elevate3d.geom.elevation import ElevationField
 from elevate3d.gen.dataset import (CATEGORIES, MAX_OBJECTS, MAX_TIERS,
                                    N_CATEGORIES, SUPPORT_CEILING, UNKNOWN_CAT,
                                    scene_to_arrays)
+from elevate3d.gen.field import FieldParams, field_from_params
+from elevate3d.gen.field_model import FieldNet, encode_room
 from elevate3d.gen.model import Elevate3D
 
 
@@ -77,6 +79,33 @@ def load_scene(d) -> ElevScene:
         es.supports[o["oid"]] = parse_support(o["support"])
         es.dz[o["oid"]] = o["dz"]
     return es.resolve()
+
+
+@torch.no_grad()
+def generate_field(fieldnet, rec, device, rng, temperature: float = 1.0,
+                   tries: int = 6):
+    """Replace the given elevation field with one M1 proposes.
+
+    Every result up to here conditioned on a field that came from the corpus or
+    from HouseLayout3D.  With M1 in front, the system produces the field as well
+    as the layout, which is what the formalism claimed and what the earlier
+    rounds could not do.  M1 is allowed to refuse — a degenerate box or one that
+    leaves no walkable datum returns nothing — and the room then stays flat,
+    which is the correct answer for most rooms anyway.
+    """
+    room = np.asarray(rec["room"]["polygon"], float)
+    enc = encode_room(room, rec["room"].get("height", 2.8))
+    b = {"boundary": torch.as_tensor(enc["boundary"]).unsqueeze(0).to(device),
+         "scalars": torch.as_tensor(enc["scalars"]).unsqueeze(0).to(device)}
+    for _ in range(tries):
+        idx, box, rise = fieldnet.sample(b, temperature)
+        p = FieldParams(int(idx[0]), box[0].float().cpu().numpy(),
+                        float(rise[0]))
+        f = field_from_params(room, p)
+        if f is not None:
+            return f
+    from elevate3d.geom.elevation import ElevationField
+    return ElevationField.flat(room)
 
 
 def _fp(xy, yaw, size):
@@ -311,6 +340,10 @@ def main():
     ap.add_argument("--bias-run", default="m3_bias")
     ap.add_argument("--flat-run", default="m3_no_tiers")
     ap.add_argument("--small-run", default="m3_ours_small")
+    ap.add_argument("--field-run", default="",
+                    help="generate the elevation field with M1 from this run "
+                         "instead of taking it from the record; makes the "
+                         "evaluation end-to-end")
     ap.add_argument("--stop-json", default="",
                     help="reuse stop thresholds calibrated on the in-distribution "
                          "split; MP3D-Elev has no reference layout to calibrate "
@@ -433,6 +466,23 @@ def main():
     if "gt" in want:
         results["gt"] = evaluate([load_scene(r["elev"]) for r in val_recs])
         print("gt done", flush=True)
+
+    if args.field_run:
+        ck = torch.load(os.path.join(args.runs, args.field_run, "best.pt"),
+                        map_location="cpu", weights_only=False)
+        c = ck.get("cfg", {"d": 256, "layers": 4})
+        fnet = FieldNet(d=c["d"], layers=c["layers"]).to(dev)
+        fnet.load_state_dict(ck["model"])
+        fnet.eval()
+        rg = np.random.default_rng(5)
+        n_flat = 0
+        for r in val_recs:
+            f = generate_field(fnet, r["elev"], dev, rg)
+            n_flat += int(f.is_flat)
+            r["elev"] = dict(r["elev"])
+            r["elev"]["field"] = f.to_dict()
+        print(f"M1 fields generated; {n_flat}/{len(val_recs)} came back flat",
+              flush=True)
 
     gt_mean = float(np.mean([len(r["elev"]["objects"]) for r in val_recs]))
     thresholds = {}
