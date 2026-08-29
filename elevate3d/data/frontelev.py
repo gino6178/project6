@@ -406,6 +406,33 @@ def architectural_region(room: Polygon, yaw: float, target_frac: float,
     out = _largest(_rect(a, b, Rb).intersection(room))
     if out is None or out.area < 1.2:
         return None
+
+    # Real elevated floors are 52 % non-rectangular and almost all convex: they
+    # are trapezoids and wedges following a wall that is not orthogonal to the
+    # others.  Cutting one corner with a diagonal half-plane produces that class;
+    # without it the corpus is 20 % non-rectangular against a real 52 %.
+    if rng.random() < 0.45:
+        c = np.asarray(out.exterior.coords)[:-1]
+        if len(c) >= 4:
+            i = int(rng.integers(len(c)))
+            prev, here, nxt = c[i - 1], c[i], c[(i + 1) % len(c)]
+            t = float(rng.uniform(0.25, 0.75))
+            a2 = here + (prev - here) * t
+            b2 = here + (nxt - here) * t
+            d = b2 - a2
+            n = np.array([-d[1], d[0]])
+            ln = np.linalg.norm(n)
+            if ln > 1e-9:
+                n = n / ln
+                if float(np.dot(n, out.centroid.coords[0] - a2)) < 0:
+                    n = -n
+                big = 4.0 * float(np.max(np.abs(c - out.centroid.coords[0]))) + 5.0
+                keep = Polygon([a2 - d * big, b2 + d * big,
+                                b2 + d * big + n * big, a2 - d * big + n * big])
+                cut = _largest(out.intersection(keep))
+                if cut is not None and cut.area > 0.6 * out.area:
+                    out = cut
+
     # a step landing in a doorway is not a step
     for d in _door_polys_from(openings):
         if out.intersection(d).area > 0.2 * d.area:

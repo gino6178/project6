@@ -6,12 +6,23 @@ layout comparison clean but leaves the system unable to produce a multi-elevatio
 room on its own — the formalism's ``{(R_k, h_k)}`` and ``T`` were inputs, not
 outputs.
 
-The architecture-driven region rule made this tractable. A region is now a
-rectangle taken off a wall in the room's principal frame, so the whole field
-reduces to a program label, an interval box in that frame, and a rise — a handful
-of numbers rather than an arbitrary polygon. Those parameters are *recovered*
-from the corpus rather than recorded during generation, so no rebuild is needed
-and the target is exactly what a reader could recompute from the released data.
+The architecture-driven region rule made this tractable. A field reduces to a
+program label, a convex region in the room's principal frame, and a rise.
+
+The region was an axis-aligned box at first, which left a gap against the
+formalism's "a tier is any ``R_k ⊂ P``". Measured, that gap is real but smaller
+than it looks: 52 % of real elevated floors are non-rectangular, yet a box
+clipped to the room still round-trips them at 0.905 median IoU, because the room
+boundary does part of the shaping. Where the box actually fails is the tail —
+the regions following a wall that is not orthogonal to the others. The region is
+therefore a **support function** sampled at 12 fixed directions
+(``geom/support_poly.py``), which contains the box as a special case, is convex
+and valid by construction, and lifts the 10th-percentile IoU from 0.471 to
+0.626.
+
+Those parameters are *recovered* from the corpus rather than recorded during
+generation, so the target is exactly what a reader could recompute from the
+released data.
 
 The flat half of each corpus pair supplies the negatives: a model that always
 proposes an elevation is not a model of where elevations belong.
@@ -25,6 +36,7 @@ import numpy as np
 from shapely.geometry import Polygon
 
 from ..geom.elevation import ElevationField, Tier, make_transition
+from ..geom.support_poly import (N_DIRS, offsets_from_poly, poly_from_offsets)
 
 __all__ = ["PROGRAMS", "FieldParams", "params_from_scene", "field_from_params",
            "room_frame"]
@@ -61,12 +73,12 @@ class FieldParams:
     """What M1 emits. ``program == 0`` means the room stays flat."""
 
     program: int
-    box: np.ndarray        # (4,) lo_u, lo_v, hi_u, hi_v in [0, 1] of the extent
+    offsets: np.ndarray    # (N_DIRS,) support function in the room frame
     rise: float            # metres, signed
 
     def to_dict(self) -> dict:
         return {"program": int(self.program),
-                "box": [round(float(x), 4) for x in self.box],
+                "offsets": [round(float(x), 4) for x in self.offsets],
                 "rise": round(float(self.rise), 4)}
 
 
@@ -78,18 +90,16 @@ def params_from_scene(d: dict) -> FieldParams:
     tiers = field["tiers"]
     prog = PROGRAM_ID.get((d.get("meta") or {}).get("program", "none"), 0)
     if len(tiers) < 2 or prog == 0:
-        return FieldParams(0, np.zeros(4, dtype=np.float32), 0.0)
+        return FieldParams(0, np.zeros(N_DIRS, dtype=np.float32), 0.0)
 
     # the elevated region is the tier whose height is furthest from the datum
     datum = max(tiers, key=lambda t: Polygon(t["polygon"]).area)
     region = max(tiers, key=lambda t: abs(t["height"] - datum["height"]))
     R = np.array([[math.cos(-yaw), -math.sin(-yaw)],
                   [math.sin(-yaw), math.cos(-yaw)]])
-    q = np.asarray(region["polygon"], dtype=float) @ R.T
-    lo = (q.min(0) - origin) / np.maximum(extent, 1e-6)
-    hi = (q.max(0) - origin) / np.maximum(extent, 1e-6)
-    box = np.clip(np.concatenate([lo, hi]), 0.0, 1.0).astype(np.float32)
-    return FieldParams(prog, box, float(region["height"] - datum["height"]))
+    q = Polygon(np.asarray(region["polygon"], dtype=float) @ R.T)
+    h = offsets_from_poly(q, origin, extent)
+    return FieldParams(prog, h, float(region["height"] - datum["height"]))
 
 
 def field_from_params(room: np.ndarray, p: FieldParams,
@@ -110,15 +120,19 @@ def field_from_params(room: np.ndarray, p: FieldParams,
         return ElevationField.flat(room)
 
     yaw, origin, extent = room_frame(room)
-    lo = origin + np.minimum(p.box[:2], p.box[2:]) * extent
-    hi = origin + np.maximum(p.box[:2], p.box[2:]) * extent
-    if np.any(hi - lo < 0.8):
-        return None
+    R = np.array([[math.cos(-yaw), -math.sin(-yaw)],
+                  [math.sin(-yaw), math.cos(-yaw)]])
     Rb = np.array([[math.cos(yaw), -math.sin(yaw)],
                    [math.sin(yaw), math.cos(yaw)]])
-    rect = np.array([[lo[0], lo[1]], [hi[0], lo[1]], [hi[0], hi[1]],
-                     [lo[0], hi[1]]]) @ Rb.T
-    region = Polygon(rect).intersection(rp)
+    room_q = Polygon(np.asarray(rp.exterior.coords)[:-1] @ R.T)
+    reg_q = poly_from_offsets(p.offsets, origin, extent, clip=room_q,
+                              min_area=1.2)
+    if reg_q is None:
+        return None
+    region = Polygon(np.asarray(reg_q.exterior.coords)[:-1] @ Rb.T)
+    if not region.is_valid:
+        region = region.buffer(0)
+    region = region.intersection(rp)
     if region.is_empty or region.geom_type != "Polygon" or region.area < 1.2:
         return None
     rest = rp.difference(region)

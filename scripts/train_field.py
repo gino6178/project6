@@ -67,7 +67,7 @@ class FieldCorpus(Dataset):
             "scalars": torch.as_tensor(enc["scalars"]),
             "room_type": torch.tensor(int(enc["room_type"]), dtype=torch.long),
             "program": torch.tensor(p.program, dtype=torch.long),
-            "box": torch.as_tensor(np.asarray(p.box, dtype=np.float32)),
+            "offsets": torch.as_tensor(np.asarray(p.offsets, dtype=np.float32)),
             "rise": torch.tensor(float(p.rise), dtype=torch.float32),
         }
 

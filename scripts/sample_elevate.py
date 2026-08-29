@@ -101,8 +101,8 @@ def generate_field(fieldnet, rec, device, rng, temperature: float = 1.0,
          "room_type": torch.tensor([int(enc["room_type"])],
                                    dtype=torch.long, device=device)}
     for _ in range(tries):
-        idx, box, rise = fieldnet.sample(b, temperature)
-        p = FieldParams(int(idx[0]), box[0].float().cpu().numpy(),
+        idx, off, rise = fieldnet.sample(b, temperature)
+        p = FieldParams(int(idx[0]), off[0].float().cpu().numpy(),
                         float(rise[0]))
         f = field_from_params(room, p)
         if f is not None:
@@ -153,6 +153,8 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
     step_zone = unary_union(bands) if bands else None
 
     b = {k: torch.as_tensor(v).unsqueeze(0).to(device) for k, v in a.items()}
+    if getattr(model, "_tier_no_height", False):
+        b["tiers"][..., 5:8] = 0.0
     for f in ("cat", "box", "dz", "sup"):
         b[f] = torch.zeros_like(b[f])
     b["obj_mask"] = torch.zeros_like(b["obj_mask"])
@@ -429,7 +431,9 @@ def main():
             m = Elevate3D(d=c["d"], layers=c["layers"], heads=c["heads"],
                           use_tiers=c["use_tiers"],
                           use_tier_bias=c["use_tier_bias"]).to(dev)
-            m.load_state_dict(ck["model"]); m.eval(); return m
+            m.load_state_dict(ck["model"]); m.eval()
+        m._tier_no_height = bool(c.get("tier_no_height", False))
+        return m
         for meth, run, kw in (("ours", args.ours_run, {}),
                               ("ours_small", args.small_run, {}),
                               ("bias", args.bias_run, {}),
@@ -513,6 +517,7 @@ def main():
                       use_tier_bias=c["use_tier_bias"]).to(dev)
         m.load_state_dict(ck["model"])
         m.eval()
+        m._tier_no_height = bool(c.get("tier_no_height", False))
         return m
 
     want = [w.strip() for w in args.methods.split(",") if w.strip()]

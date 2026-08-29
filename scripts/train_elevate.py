@@ -32,7 +32,8 @@ from elevate3d.gen.dataset import (ElevCorpus, MAX_OBJECTS, MAX_TIERS,
 from elevate3d.gen.model import Elevate3D, model_size
 
 
-def losses(model, batch, device, rng, tier_weight: float = 2.0):
+def losses(model, batch, device, rng, tier_weight: float = 1.0,
+           tier_no_height: bool = False):
     B = batch["cat"].shape[0]
     n = batch["n_obj"]
     # one prefix per scene; including n itself teaches the stop decision
@@ -46,6 +47,12 @@ def losses(model, batch, device, rng, tier_weight: float = 2.0):
         b["obj_mask"] = batch["obj_mask"][:, :n_ctx] & (idx < k.unsqueeze(1))
         for f in ("cat", "box", "dz", "sup"):
             b[f] = batch[f][:, :n_ctx] if f != "sup" else batch[f][:, :n_ctx]
+    if tier_no_height:
+        # keep the tier polygons, remove every height signal: h_k and the two
+        # riser columns.  If the metrics do not move, what the tier tokens buy
+        # is a partition of the floor, not knowledge of the elevation.
+        b["tiers"] = b["tiers"].clone()
+        b["tiers"][..., 5:8] = 0.0
     out, x, m, iob, q = model(b, n_ctx)
 
     stopping = (k >= n).float()
@@ -112,14 +119,16 @@ def losses(model, batch, device, rng, tier_weight: float = 2.0):
                    "cat_acc": cacc.item()}
 
 
-def run_val(model, dl, device, args_tier_weight=2.0):
+def run_val(model, dl, device, args_tier_weight=1.0,
+            args_no_height=False):
     model.eval()
     agg, n = {}, 0
     rng = np.random.default_rng(0)
     with torch.no_grad():
         for batch in dl:
             batch = {k: v.to(device) for k, v in batch.items()}
-            _, parts = losses(model, batch, device, rng, args_tier_weight)
+            _, parts = losses(model, batch, device, rng, args_tier_weight,
+                              args_no_height)
             for k, v in parts.items():
                 agg[k] = agg.get(k, 0.0) + v
             n += 1
@@ -154,6 +163,10 @@ def main():
                          "tier precision drops from 0.883 to 0.755.  The "
                          "calibrated sampling temperature does this job "
                          "without the cost, so the default is 1.0.")
+    ap.add_argument("--tier-no-height", action="store_true",
+                    help="ablation: keep the tier polygons but zero every height "
+                         "signal, to separate 'knows the elevation' from 'knows "
+                         "the floor is partitioned'")
     ap.add_argument("--limit-train", type=int, default=0,
                     help="subsample the training split; used to separate the "
                          "effect of corpus scale from corpus calibration")
@@ -208,7 +221,8 @@ def main():
             batch = {k: v.to(dev, non_blocking=True) for k, v in batch.items()}
             with torch.amp.autocast("cuda", enabled=dev.type == "cuda",
                                     dtype=torch.bfloat16):
-                loss, parts = losses(model, batch, dev, rng, args.tier_weight)
+                loss, parts = losses(model, batch, dev, rng, args.tier_weight,
+                                     args.tier_no_height)
             opt.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
             scaler.unscale_(opt)
@@ -222,7 +236,7 @@ def main():
         nb = max(len(dtr), 1)
         tr_line = {k: v / nb for k, v in run.items()}
         if ep % 5 == 0 or ep == args.epochs - 1:
-            vl = run_val(model, dva, dev, args.tier_weight)
+            vl = run_val(model, dva, dev, args.tier_weight, args.tier_no_height)
             score = vl.get("sup", 9e9) + vl.get("xy", 0.0)
             hist.append({"epoch": ep, "train": tr_line, "val": vl,
                          "lr": sched.get_last_lr()[0]})
@@ -238,7 +252,8 @@ def main():
                             "cfg": {"d": args.d, "layers": args.layers,
                                     "heads": args.heads,
                                     "use_tiers": not args.no_tiers,
-                                    "use_tier_bias": args.tier_bias},
+                                    "use_tier_bias": args.tier_bias,
+                                    "tier_no_height": args.tier_no_height},
                             "epoch": ep, "val": vl},
                            os.path.join(args.out, "best.pt"))
             with open(os.path.join(args.out, "history.json"), "w") as fh:
@@ -246,7 +261,8 @@ def main():
     torch.save({"model": model.state_dict(), "args": vars(args),
                 "cfg": {"d": args.d, "layers": args.layers, "heads": args.heads,
                         "use_tiers": not args.no_tiers,
-                        "use_tier_bias": args.tier_bias},
+                        "use_tier_bias": args.tier_bias,
+                        "tier_no_height": args.tier_no_height},
                 "epoch": args.epochs - 1}, os.path.join(args.out, "last.pt"))
     print(f"done in {time.time()-t0:.0f}s -> {args.out}", flush=True)
 

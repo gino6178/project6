@@ -17,6 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .dataset import BOUNDARY_POINTS
+from ..geom.support_poly import N_DIRS
 from .field import PROGRAMS
 from .model import MixtureHead, TierBiasedBlock
 
@@ -88,7 +89,8 @@ class FieldNet(nn.Module):
         self.norm = nn.LayerNorm(d)
 
         self.head_prog = nn.Linear(d, N_PROGRAMS)
-        self.head_box = MixtureHead(d + N_PROGRAMS, 4, k=12, hidden=d)
+        # the region is a support function at N_DIRS directions, not a box
+        self.head_box = MixtureHead(d + N_PROGRAMS, N_DIRS, k=12, hidden=d)
         self.head_rise = MixtureHead(d + N_PROGRAMS, 1, k=8, hidden=d)
 
     def encode(self, batch):
@@ -121,7 +123,9 @@ class FieldNet(nn.Module):
         idx = torch.multinomial(p, 1).squeeze(-1)
         oh = F.one_hot(idx, N_PROGRAMS).float()
         h = self.geometry(out["q"], oh)
-        box = self.head_box.sample(h, temperature).clamp(0.0, 1.0)
+        # offsets are signed distances in a normalised frame; clamping to [0,1]
+        # would forbid regions that reach past the frame origin
+        box = self.head_box.sample(h, temperature).clamp(-1.5, 2.5)
         rise = self.head_rise.sample(h, temperature).squeeze(-1)
         return idx, box, rise
 
@@ -137,7 +141,7 @@ def field_losses(model, batch):
     if live.any():
         oh = F.one_hot(batch["program"], N_PROGRAMS).float()
         h = model.geometry(out["q"], oh)[live]
-        l_box = model.head_box.nll(h, batch["box"][live])
+        l_box = model.head_box.nll(h, batch["offsets"][live])
         l_rise = model.head_rise.nll(h, batch["rise"][live].unsqueeze(-1))
         total = total + 0.3 * l_box + 0.3 * l_rise
         parts.update(box=l_box.item(), rise=l_rise.item())
