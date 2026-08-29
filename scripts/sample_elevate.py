@@ -122,6 +122,7 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
     b["obj_mask"] = torch.zeros_like(b["obj_mask"])
 
     objs, sups, dzs = [], [], []
+    placed_fp = []          # footprints are rebuilt O(n) times per try otherwise
     for i in range(max_obj):
         out, x, m, iob, q = model(b, i)
         if torch.sigmoid(out["stop"])[0].item() > 0.5:
@@ -168,9 +169,8 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
             cost = 0.0
             if tier_shape is not None and fp.area > 1e-9:
                 cost += 2.0 * (1.0 - tier_shape.intersection(fp).area / fp.area)
-            for pobj in objs:
-                inter = fp.intersection(_fp(pobj.xy, pobj.yaw, pobj.size)).area
-                cost += inter / max(fp.area, 1e-9)
+            for pfp in placed_fp:
+                cost += fp.intersection(pfp).area / max(fp.area, 1e-9)
             if step_zone is not None:
                 # weighted above the others: a blocked step severs the room,
                 # while an overlapping pair of side tables is merely untidy
@@ -183,6 +183,7 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
 
         oid = f"g{i}"
         objs.append(_O(oid, CATEGORIES[cid], xy, yaw, size))
+        placed_fp.append(_fp(xy, yaw, size))
         if sl < MAX_TIERS:
             sups.append(Support(TIER, slot_tid.get(sl, field.datum.tid)))
             dzs.append(max(dz, 0.0))
