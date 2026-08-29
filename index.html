@@ -545,6 +545,11 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
     <p><strong>在真實高程場上，我們的方法在違規指標上沒有贏過平面基準。</strong>同分布量到的優勢沒有遷移過去。這是目前最重要的未解問題。</p>
   </div>
 
+  <figure>
+    <img src="assets/samples_mp3d.png" alt="四種方法在真實 MP3D-Elev 房間上的生成結果">
+    <figcaption><b>圖 3．</b>同樣四種方法，這次在 MP3D-Elev 的真實高程場上 —— 這些分區多邊形、高度與樓梯全部來自真實 Matterport 建築的標註，生成器沒有參與。真實房間比訓練分佈大得多（中位 34 m² 對 20 m²），高程區佔比更小，這是 §8 末尾那張領域落差表的視覺對應。</figcaption>
+  </figure>
+
   <h3>兩個負面結果</h3>
   <div class="prose">
     <p><strong>分區相對注意力偏置沒有作用。</strong><code>ours</code> 與 <code>no-bias</code> 在兩個測試集的每一項指標上都在噪聲範圍內。三個提議模組之一沒有證據支持，應該從論文裡拿掉而不是硬辯。</p>
