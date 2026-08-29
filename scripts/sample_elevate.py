@@ -94,9 +94,12 @@ def generate_field(fieldnet, rec, device, rng, temperature: float = 1.0,
     which is the correct answer for most rooms anyway.
     """
     room = np.asarray(rec["room"]["polygon"], float)
-    enc = encode_room(room, rec["room"].get("height", 2.8))
+    enc = encode_room(room, rec["room"].get("height", 2.8),
+                      rec["room"].get("room_type", ""))
     b = {"boundary": torch.as_tensor(enc["boundary"]).unsqueeze(0).to(device),
-         "scalars": torch.as_tensor(enc["scalars"]).unsqueeze(0).to(device)}
+         "scalars": torch.as_tensor(enc["scalars"]).unsqueeze(0).to(device),
+         "room_type": torch.tensor([int(enc["room_type"])],
+                                   dtype=torch.long, device=device)}
     for _ in range(tries):
         idx, box, rise = fieldnet.sample(b, temperature)
         p = FieldParams(int(idx[0]), box[0].float().cpu().numpy(),

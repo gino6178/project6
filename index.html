@@ -156,7 +156,7 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);
   <p class="tagline">室內場景生成一直假設樓板是一個平面。下沉客廳、榻榻米高台、錯層與室內夾層不是。</p>
   <div class="meta">
     <span>3D-FRONT 6,813 棟 · 37,529 房</span>
-    <span>FRONT-Elev 11,374 對</span>
+    <span>FRONT-Elev 17,848 對</span>
     <span>MP3D-Elev 72 間真實房</span>
     <span>M1 3.5M + M2 27.8M · 單張 L40</span>
   </div>
@@ -176,7 +176,7 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);
   <div>
     <span class="tag hold">OOD 差距關上</span>
     <h3>真實高程場上追平</h3>
-    <p>把區域改成建築導向後，真實場上的違規率下降 56–78%，跨層甚至勝過平面基準。M1 也做出來了 —— 系統現在自己生成高程場。</p>
+    <p>建築導向的區域讓真實場違規率下降 56–78%。M1 生成高程場，端到端 elevation F1 <strong>0.813</strong> 對給定高程場的 0.892 —— 生成高程場只付出約十分之一。</p>
   </div>
 </div>
 
@@ -686,6 +686,52 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
     <p>兩點要小心讀。<strong>flatten 在兩個測試集上都是 0.000</strong> —— 這正是重點：一個靠拒絕使用高程贏下所有違規指標的基準，不該通過一個「你到底有沒有用高程」的指標。而 <strong>per-tier 在分布外拿下最高 F1，卻擋住 61% 的階梯</strong>：它被免費給了 GT 高程場、每層獨立取樣，所以分區擺放精確而動線不精確。F1 講的是擺放不是動線，必須跟擋階率並排讀，不能取代它。</p>
   </div>
 
+  <h3>第七輪：四個待辦，其中一個失敗</h3>
+
+  <h4>stop 頭訓練時就校準 —— 有效</h4>
+  <div class="prose">
+    <p>每個場景抽一個前綴，所以 <em>n</em> 個物件的場景提供 <em>n</em> 個「不停」前綴與 1 個「停」前綴。未加權的 BCE 因此到處都學到約 1/(n+1) 的機率 —— 這就是閾值掃描一路掉到 0.05 的原因。用平均物件數當正例權重，決策邊界回到該在的位置：<code>ours</code> 校準出來的閾值現在是 <strong>0.5</strong>，不是網格下界。</p>
+  </div>
+
+  <h4>M1 條件於房型 —— 有效</h4>
+  <div class="prose">
+    <p>program 頭原本得從房間輪廓推斷房間的用途。給了房型之後，五分類準確率從 <strong>0.53 到 0.650</strong>，端到端 F1 跟著上去。</p>
+  </div>
+
+  <h4>高程使用進目標函數 —— 一半失敗</h4>
+  <div class="tw"><table>
+    <thead><tr><th></th><th class="num">R6</th><th class="num">R7 損失加權</th><th class="num">R7 校準取樣</th></tr></thead>
+    <tbody>
+      <tr><td>elevation F1</td><td class="num">0.817</td><td class="num">0.860</td><td class="num best">0.892</td></tr>
+      <tr><td>高程層物件／場景（GT 1.66）</td><td class="num">1.77</td><td class="num worst">1.94</td><td class="num best">1.50</td></tr>
+      <tr><td>高程層 precision</td><td class="num">0.874</td><td class="num worst">0.755</td><td class="num best">0.883</td></tr>
+      <tr><td>任一違規（場景）</td><td class="num">0.387</td><td class="num worst">0.527</td><td class="num best">0.317</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note neg">
+    <p>在 support 交叉熵裡對非基準層加權會<strong>超調</strong> —— 模型用高程用得比 ground truth 還多，代價是 precision（0.755 對 0.883）與違規率（0.527 對 0.317）。改成用與 stop 閾值相同的協定，把 support 指標的取樣溫度對 ground truth 校準，達成同一個目標而沒有那個代價。損失加權的預設值退回 1.0，修正留在取樣器裡。</p>
+  </div>
+
+  <h4>過渡寬度 —— 結案，而且不是區域規則能解的</h4>
+  <div class="prose">
+    <p>把候選區域按「階梯落地處本來就有多淨空」評分，語料庫產出率從 52.7% 拉到 <strong>73.7%</strong>（17,848 對，GT 仍乾淨），但過渡寬度中位仍是 1.67 m（真實 2.93）。加上先前已量測並退回的「推擠家具」那條路，兩條可行路徑都試過了。這個寬度取決於 3D-FRONT 房間邊界的家具密度，不是區域規則搆得到的東西。</p>
+  </div>
+
+  <h3>端到端，第七輪</h3>
+  <div class="tw"><table>
+    <thead><tr><th></th><th class="num">GT</th><th class="num">M1 + M2</th><th class="num">flatten</th></tr></thead>
+    <tbody>
+      <tr><td>elevation F1</td><td class="num">0.994</td><td class="num best">0.813</td><td class="num worst">0.000</td></tr>
+      <tr><td>高程層物件／場景</td><td class="num">1.66</td><td class="num best">1.58</td><td class="num worst">0.00</td></tr>
+      <tr><td>高程層 precision</td><td class="num">0.988</td><td class="num">0.711</td><td class="num worst">0.000</td></tr>
+      <tr><td>任一違規（場景）</td><td class="num">0.013</td><td class="num">0.393</td><td class="num best">0.183</td></tr>
+      <tr><td>CCN 掃地機器人</td><td class="num">0.660</td><td class="num best">0.655</td><td class="num worst">0.583</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>M1 對 58% 的房間提出高程、42% 拒絕。端到端 F1 <strong>0.813 對給定高程場的 0.892</strong> —— 第六輪是 0.594 對 0.817，所以生成高程場的代價從四分之一降到約十分之一。掃地機器人的可達率與 ground truth 只差 0.005。</p>
+  </div>
+
   <h3>更大的房間來源：量測完了，前提是錯的</h3>
   <div class="prose">
     <p>第二、三輪把兩個卡住的統計量歸咎於 3D-FRONT 房間太小，並提出「換更大的房間來源」。兩半都測了，兩半都錯。</p>
@@ -732,10 +778,9 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
   <h3>下一步，按期望價值排序</h3>
   <div class="prose">
     <ol>
-      <li><strong>把 elevation F1 放進目標函數</strong>，而不只是放進報告。它量出了「拒絕使用」的缺口，而我們自己也還低於 GT（1.77 對 2.31）。</li>
-      <li><strong>改善 M1 的 program 頭。</strong>五分類準確率 0.53；框與落差擬合得好（NLL −6.8 與 −0.5），端到端的損失集中在「要不要有高程、要哪一種」。</li>
-      <li><strong>過渡寬度</strong>，最後一個沒對上的語料庫統計量。清空落地帶必須成為擺放的一部分，而不是事後推一把 —— 當作事後推一把會賠上 GT 的乾淨。</li>
-      <li><strong>把 stop 頭訓練得校準</strong>，而不是掃一個閾值。</li>
+      <li><strong>高程層 precision 是剩下的缺口</strong>：給定高程場 0.883、端到端 0.711，GT 是 0.988。高程現在用得夠多了，問題是放上去的東西還是太常放錯。</li>
+      <li><strong>更強的 M1 program 頭。</strong>五分類 0.650 是端到端損失裡最大的單項。</li>
+      <li><strong>過渡寬度</strong>在這個語料庫的範圍內已經結案。要動它需要房間不是 3D-FRONT 的資料源 —— 而第四輪已經確立 Infinigen 也不是那個來源。</li>
     </ol>
   </div>
 </section>

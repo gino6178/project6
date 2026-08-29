@@ -1,6 +1,6 @@
 # Results
 
-Six rounds. Each acted on what the previous one measured. Round 3 corrects an
+Seven rounds. Each acted on what the previous one measured. Round 3 corrects an
 attribution round 2 got wrong; round 4 adds the metric three rounds kept asking
 for and refutes the next step rounds 2 and 3 proposed; rounds 5 and 6 act on
 that refutation and close the out-of-distribution gap.
@@ -16,6 +16,7 @@ and metrics are shared by every row, so each comparison isolates one variable.
 | R4 | same as R3 | 13,300 | as R3; adds tier precision, density and elevation F1 |
 | R5 | **architecture-driven**, 11,374 pairs | 10,200 | as R4 |
 | R6 | same as R5 | 10,200 | as R5; **M1 generates the field** |
+| R7 | v4, 17,848 pairs | 16,000 | calibrated stop head and support temperature |
 
 ---
 
@@ -277,6 +278,65 @@ rather than silently scored as zero. And `per-tier` still tops F1 everywhere
 while obstructing 61–73 % of the steps, so F1 has to be read beside step
 blocking, not instead of it.
 
+## Round 7 — the four open items, and one of them fails
+
+### The stop head, trained calibrated — works
+
+One prefix is drawn per scene, so a scene of *n* objects offers *n* non-stopping
+prefixes and one stopping one. An unweighted BCE therefore learns a probability
+near 1/(n+1) everywhere, which is why the threshold sweep bottomed out at 0.05.
+Weighting the positive class by the mean object count puts the decision boundary
+back where it belongs: the calibrated threshold for `ours` is now **0.5**, not
+the floor of the grid.
+
+### M1 conditioned on room type — works
+
+The program head was inferring a room's function from its outline. Given the
+type, it goes from **0.53 to 0.650** over five classes, and the end-to-end F1
+follows.
+
+### Elevation use in the objective — half of it fails
+
+Two routes were tried for the same goal, and they disagree.
+
+| | R6 | R7, weighted loss | R7, calibrated sampling |
+|---|---|---|---|
+| elevation F1 | 0.817 | 0.860 | **0.892** |
+| tier use, obj/scene (GT 1.66) | 1.77 | 1.94 | **1.50** |
+| tier precision | 0.874 | 0.755 | **0.883** |
+| any violation (scene) | 0.387 | 0.527 | **0.317** |
+
+Upweighting the non-datum tiers in the support cross-entropy **overshoots**: the
+model uses the elevation more than the ground truth does and pays for it in
+precision and in violations. Drawing the support at a temperature calibrated
+against the ground truth — the same protocol as the stop threshold — achieves
+the goal without the cost. The loss weighting is reverted to 1.0 by default and
+the fix lives in the sampler.
+
+### Transition width — settled, and not by the region rule
+
+Scoring candidate regions by how clear their step's landing already is lifted
+the corpus yield from 52.7 % to **73.7 %** (17,848 pairs, ground truth still
+clean) but left the median transition width at 1.67 m against a real 2.93. With
+the shove route already measured and reverted, both available routes have now
+been tried. The width is a property of 3D-FRONT's furniture density at room
+boundaries, not something the region rule can reach.
+
+## End to end, round 7
+
+| | GT | **M1 + M2** | flatten |
+|---|---|---|---|
+| elevation F1 | 0.994 | **0.813** | 0.000 |
+| tier use, obj/scene | 1.66 | **1.58** | 0.00 |
+| tier precision | 0.988 | 0.711 | 0.000 |
+| any violation (scene) | 0.013 | 0.393 | 0.183 |
+| CCN sweeping robot | 0.660 | **0.655** | 0.583 |
+
+M1 proposes an elevation for 58 % of rooms and refuses on 42 %. End-to-end F1 is
+**0.813 against 0.892 with a given field** — round 6 read 0.594 against 0.817, so
+generating the field now costs about a tenth rather than a quarter. Reachability
+for a sweeping robot is within 0.005 of ground truth.
+
 ## A published baseline: why not PhyScene
 
 PhyScene's output space is (x, y, θ) on one plane and it cannot take an
@@ -288,13 +348,11 @@ directly, not to strengthen the argument.
 
 ## Next
 
-1. **Put the elevation F1 in the objective**, not only in the report. It measures
-   the abstention gap and `ours` still under-uses the elevation against ground
-   truth (1.77 against 2.31 objects per scene); nothing closes that in training.
-2. **Improve M1's program head.** It is at 0.53 accuracy over five classes — the
-   box and rise heads fit well (NLL −6.8 and −0.5) but deciding *whether* a room
-   gets an elevation, and which kind, is where the end-to-end loss sits.
-3. **Transition width**, the last corpus statistic off. Clearing the landing has
-   to be part of placement rather than a post-hoc shove; as a shove it costs
-   ground-truth cleanliness.
-4. **Calibrate the stop head** rather than sweeping a threshold.
+1. **Tier precision is the remaining gap**: 0.883 given a field, 0.711 end to
+   end, against a ground truth 0.988. The elevation is used about as much as it
+   should be now; what is placed on it is still wrong too often.
+2. **A stronger M1 program head.** 0.650 over five classes is the largest single
+   term in the end-to-end loss.
+3. **Transition width** is closed as far as this corpus allows. Moving it needs
+   a data source whose rooms are not 3D-FRONT's — and round 4 established that
+   Infinigen is not that source either.

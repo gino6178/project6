@@ -29,34 +29,51 @@ records the first end-to-end numbers, including the negative ones.
 
 ## State
 
-Six rounds, each acting on what the previous one measured. It is now a two-stage
-system: **M1** (3.5 M) generates the elevation field, **M2** (27.8 M) lays out
-on it.
+Seven rounds, each acting on what the previous one measured. Two stages:
+**M1** (3.5 M) generates the elevation field, **M2** (27.8 M) lays out on it.
 
-**Round 4 refuted rounds 2-3's proposed next step** — the region fraction was
-stuck because the region was derived from furniture, not because 3D-FRONT's
-rooms are small. **Round 5 acted on that**: the region is now taken off a wall
-at a depth drawn from the measured distribution.
+### End to end
 
-| corpus statistic | R1 | R3 | **R5** | real |
-|---|---|---|---|---|
-| region fraction | 0.46 | 0.41 | **0.278** | 0.271 |
-| Wasserstein | 0.164 | 0.099 | **0.022** | — |
+| | GT | **M1 + M2** | flatten |
+|---|---|---|---|
+| elevation F1 | 0.994 | **0.813** | 0.000 |
+| raised-floor use, obj/scene | 1.66 | **1.58** | 0.00 |
+| CCN sweeping robot | 0.660 | **0.655** | 0.583 |
 
-**The out-of-distribution gap has essentially closed.** On the 72 real
-MP3D-Elev fields, ours went from 0.569 to **0.250** any-violation between
-rounds 3 and 6 against flatten's 0.208, and now *beats* flatten on straddling
-while placing 1.28 objects per scene on the raised floor to flatten's 0.00.
+M1 proposes an elevation for 58 % of rooms and refuses on 42 %. Generating the
+field costs about a tenth of the F1 against being handed one (0.813 vs 0.892);
+in round 6 it cost a quarter.
 
-**Round 6 is the first end-to-end result.** M1 proposes a field for 60 % of
-rooms and refuses on 40 %. Elevation F1: 0.817 with a given field, **0.594**
-end-to-end, 0.000 for the flat baseline.
+### What each round established
 
-The tier-relative attention bias measured as having no effect across every round
-and is off by default.
+- **R3 corrected R2**: the out-of-distribution gain came from the sampler and
+  the extra data, not from calibrating the generator's geometry.
+- **R4 added `elevation_f1`**, which scores the flat baseline **0.000** — it had
+  been winning every violation metric by never placing an object on a raised
+  tier — and **refuted R2–R3's proposed next step**: retargeting into 34–49 m²
+  rooms leaves the region fraction unchanged, and Infinigen's rooms are no
+  larger than 3D-FRONT's.
+- **R5 acted on that**: regions are taken off a wall at a measured depth.
+  Region fraction 0.410 → **0.278** (real 0.271), Wasserstein 0.164 → **0.022**.
+  On the 72 real MP3D-Elev fields, violations fell 56–78 %.
+- **R6** built M1; **R7** closed the last four items. The stop head is now
+  trained calibrated (its threshold moved from the grid floor 0.05 to 0.5), M1
+  sees the room type (program accuracy 0.53 → 0.650), and scoring the step's
+  landing lifted corpus yield 52.7 % → **73.7 %**.
+
+### Negative results, kept
+
+- The tier-relative attention bias measured as having no effect in every round.
+- Upweighting the non-datum tiers in the support loss **overshoots** — it uses
+  the elevation more than ground truth and loses precision (0.755 vs 0.883). A
+  calibrated sampling temperature achieves the same end without the cost.
+- Clearing the step's landing by moving furniture widens transitions to 2.8 m
+  but halves the yield and breaks ground-truth cleanliness. Transition width
+  (1.67 m against a real 2.93) is a property of 3D-FRONT's furniture density,
+  and both available routes have now been measured.
 
 `notes/W0_findings.md` records the dataset measurements, `notes/RESULTS.md` all
-six rounds including every negative result and every reverted change.
+seven rounds including every negative result and every reverted change.
 
 ## Reproduce
 

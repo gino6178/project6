@@ -88,11 +88,12 @@ def losses(model, batch, device, rng, tier_weight: float = 2.0):
     l_xy = g["xy"].nll(h, tgt_box[live, 0:2])
     l_yaw = g["yaw"].nll(h, tgt_box[live, 2:4])
     l_dz = g["dz"].nll(h, tgt_dz[live].unsqueeze(-1))
-    # The datum dominates the support targets, and a plain cross-entropy plus an
-    # argmax at sampling time makes the model under-use the elevation: 1.77
-    # objects per scene on raised tiers against a ground truth 2.31.  Upweighting
-    # the non-datum tiers puts that back in the objective rather than leaving it
-    # to a sampling temperature.
+    # The datum dominates the support targets, so a plain cross-entropy plus an
+    # argmax at sampling time under-uses the elevation.  Two ways to fix that
+    # were measured: upweighting the non-datum tiers here, and drawing the
+    # support at a temperature calibrated against the ground truth.  The second
+    # wins — the first overshoots and costs precision — so this defaults to 1.0
+    # and the fix lives in the sampler.
     w = torch.ones(g["support"].shape[-1], device=device)
     w[1:MAX_TIERS] = tier_weight
     l_sup = F.cross_entropy(g["support"][live], tgt_sup[live], weight=w)
@@ -146,9 +147,13 @@ def main():
                          "by default because it measured as having no effect")
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--tier-weight", type=float, default=2.0,
-                    help="how much the non-datum tiers are upweighted in the "
-                         "support loss; 1.0 restores the unweighted objective")
+    ap.add_argument("--tier-weight", type=float, default=1.0,
+                    help="upweight the non-datum tiers in the support loss.  "
+                         "Measured at 2.0 and it is worse: elevation use "
+                         "overshoots the ground truth (1.94 against 1.66) and "
+                         "tier precision drops from 0.883 to 0.755.  The "
+                         "calibrated sampling temperature does this job "
+                         "without the cost, so the default is 1.0.")
     ap.add_argument("--limit-train", type=int, default=0,
                     help="subsample the training split; used to separate the "
                          "effect of corpus scale from corpus calibration")
