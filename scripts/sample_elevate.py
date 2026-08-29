@@ -9,8 +9,8 @@ steps. That is what this script measures.
 
 Baselines share the sampler, and differ only in what they are allowed to know:
 
-  ours       tier tokens + tier-relative bias
-  no-bias    tier tokens, no bias                       (ablation)
+  ours       tier tokens (the bias is off: it measured as doing nothing)
+  bias       tier tokens + tier-relative bias           (re-check of that null)
   flatten    no tiers; everything is put on the datum   (what current methods do)
   per-tier   no tiers, but run once per tier with that tier as the room
   gt         the corpus itself, as an upper bound
@@ -87,7 +87,7 @@ def _fp(xy, yaw, size):
 @torch.no_grad()
 def sample_scene(model, rec, device, temperature: float = 1.0,
                  max_obj: int = MAX_OBJECTS, flatten: bool = False,
-                 rng=None, n_tries: int = 8) -> ElevScene:
+                 rng=None, n_tries: int = 12) -> ElevScene:
     """Autoregressive rollout conditioned on the room and its elevation field."""
     rng = rng or np.random.default_rng(0)
     a = scene_to_arrays(rec)
@@ -98,6 +98,23 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
     field = ElevationField.from_dict(rec["field"])
     slot_tid = {i: t["tid"] for i, t in enumerate(rec["field"]["tiers"][:MAX_TIERS])}
     datum_slot = int(np.argmax([t.area for t in field.tiers]))
+
+    # Every method blocked half to nine tenths of the steps in the first run,
+    # because the rejection cost knew about tiers and neighbours but not about
+    # the treads having to stay walkable.  The bands are the same ones F3
+    # measures, so the sampler is now avoiding exactly what it is scored on.
+    from shapely.ops import unary_union
+    bands = []
+    for tr in field.transitions:
+        if not tr.traversable:
+            continue
+        try:
+            b = tr.footprint(field.tier(tr.lo))
+        except KeyError:
+            b = None
+        if b is not None and b.area > 1e-6:
+            bands.append(b)
+    step_zone = unary_union(bands) if bands else None
 
     b = {k: torch.as_tensor(v).unsqueeze(0).to(device) for k, v in a.items()}
     for f in ("cat", "box", "dz", "sup"):
@@ -154,6 +171,10 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
             for pobj in objs:
                 inter = fp.intersection(_fp(pobj.xy, pobj.yaw, pobj.size)).area
                 cost += inter / max(fp.area, 1e-9)
+            if step_zone is not None:
+                # weighted above the others: a blocked step severs the room,
+                # while an overlapping pair of side tables is merely untidy
+                cost += 3.0 * fp.intersection(step_zone).area / max(fp.area, 1e-9)
             if cost < best_cost:
                 best_cost, best_xy = cost, xy
             if cost < 0.02:
@@ -250,7 +271,10 @@ def main():
     ap.add_argument("--out", default="outputs/eval_main.json")
     ap.add_argument("--n", type=int, default=300)
     ap.add_argument("--device", default="cuda:0")
-    ap.add_argument("--methods", default="gt,ours,no_bias,flatten,per_tier")
+    ap.add_argument("--methods", default="gt,ours,bias,flatten,per_tier")
+    ap.add_argument("--ours-run", default="m3_ours")
+    ap.add_argument("--bias-run", default="m3_bias")
+    ap.add_argument("--flat-run", default="m3_no_tiers")
     ap.add_argument("--mp3d", default="",
                     help="evaluate on real HouseLayout3D fields instead of the "
                          "held-out FRONT-Elev split (no ground-truth layout, so "
@@ -270,14 +294,18 @@ def main():
         def load_model_m(name):
             ck = torch.load(os.path.join(args.runs, name, "best.pt"),
                             map_location="cpu", weights_only=False)
-            a = ck["args"]
-            m = Elevate3D(d=a["d"], layers=a["layers"], heads=a["heads"],
-                          use_tiers=not a["no_tiers"],
-                          use_tier_bias=not a["no_tier_bias"]).to(dev)
+            c = ck.get("cfg") or {
+                "d": ck["args"]["d"], "layers": ck["args"]["layers"],
+                "heads": ck["args"]["heads"],
+                "use_tiers": not ck["args"]["no_tiers"],
+                "use_tier_bias": not ck["args"].get("no_tier_bias", True)}
+            m = Elevate3D(d=c["d"], layers=c["layers"], heads=c["heads"],
+                          use_tiers=c["use_tiers"],
+                          use_tier_bias=c["use_tier_bias"]).to(dev)
             m.load_state_dict(ck["model"]); m.eval(); return m
-        for meth, run, kw in (("ours", "m2_full", {}),
-                              ("no_bias", "m2_no_bias", {}),
-                              ("flatten", "m2_no_tiers", {"flatten": True})):
+        for meth, run, kw in (("ours", args.ours_run, {}),
+                              ("bias", args.bias_run, {}),
+                              ("flatten", args.flat_run, {"flatten": True})):
             if meth not in want:
                 continue
             m = load_model_m(run)
@@ -287,7 +315,7 @@ def main():
                 ccn_n=len(val_recs))
             print(f"{meth} done", flush=True)
         if "per_tier" in want:
-            m = load_model_m("m2_no_tiers")
+            m = load_model_m(args.flat_run)
             rg = np.random.default_rng(1)
             results["per_tier"] = evaluate(
                 [per_tier_sample(m, r["elev"], dev, rg) for r in val_recs],
@@ -327,10 +355,14 @@ def main():
     def load_model(name, **kw):
         p = os.path.join(args.runs, name, "best.pt")
         ck = torch.load(p, map_location="cpu", weights_only=False)
-        a = ck["args"]
-        m = Elevate3D(d=a["d"], layers=a["layers"], heads=a["heads"],
-                      use_tiers=not a["no_tiers"],
-                      use_tier_bias=not a["no_tier_bias"]).to(dev)
+        c = ck.get("cfg") or {
+            "d": ck["args"]["d"], "layers": ck["args"]["layers"],
+            "heads": ck["args"]["heads"],
+            "use_tiers": not ck["args"]["no_tiers"],
+            "use_tier_bias": not ck["args"].get("no_tier_bias", True)}
+        m = Elevate3D(d=c["d"], layers=c["layers"], heads=c["heads"],
+                      use_tiers=c["use_tiers"],
+                      use_tier_bias=c["use_tier_bias"]).to(dev)
         m.load_state_dict(ck["model"])
         m.eval()
         return m
@@ -343,21 +375,21 @@ def main():
         print("gt done", flush=True)
 
     if "ours" in want:
-        m = load_model("m2_full")
+        m = load_model(args.ours_run)
         rg = np.random.default_rng(1)
         results["ours"] = evaluate(
             [sample_scene(m, r["elev"], dev, rng=rg) for r in val_recs])
         print("ours done", flush=True)
 
-    if "no_bias" in want:
-        m = load_model("m2_no_bias")
+    if "bias" in want:
+        m = load_model(args.bias_run)
         rg = np.random.default_rng(1)
-        results["no_bias"] = evaluate(
+        results["bias"] = evaluate(
             [sample_scene(m, r["elev"], dev, rng=rg) for r in val_recs])
-        print("no_bias done", flush=True)
+        print("bias done", flush=True)
 
     if "flatten" in want:
-        m = load_model("m2_no_tiers")
+        m = load_model(args.flat_run)
         rg = np.random.default_rng(1)
         results["flatten"] = evaluate(
             [sample_scene(m, r["elev"], dev, rng=rg, flatten=True)
@@ -365,7 +397,7 @@ def main():
         print("flatten done", flush=True)
 
     if "per_tier" in want:
-        m = load_model("m2_no_tiers")
+        m = load_model(args.flat_run)
         rg = np.random.default_rng(1)
         results["per_tier"] = evaluate(
             [per_tier_sample(m, r["elev"], dev, rg) for r in val_recs])

@@ -82,10 +82,13 @@ def draw(ax, es, title):
 def load_model(runs, name, dev):
     ck = torch.load(os.path.join(runs, name, "best.pt"),
                     map_location="cpu", weights_only=False)
-    a = ck["args"]
-    m = Elevate3D(d=a["d"], layers=a["layers"], heads=a["heads"],
-                  use_tiers=not a["no_tiers"],
-                  use_tier_bias=not a["no_tier_bias"]).to(dev)
+    c = ck.get("cfg") or {
+        "d": ck["args"]["d"], "layers": ck["args"]["layers"],
+        "heads": ck["args"]["heads"],
+        "use_tiers": not ck["args"]["no_tiers"],
+        "use_tier_bias": not ck["args"].get("no_tier_bias", True)}
+    m = Elevate3D(d=c["d"], layers=c["layers"], heads=c["heads"],
+                  use_tiers=c["use_tiers"], use_tier_bias=c["use_tier_bias"]).to(dev)
     m.load_state_dict(ck["model"]); m.eval()
     return m
 
@@ -97,6 +100,8 @@ def main():
     ap.add_argument("--runs", default="/home/gino/data/elevate3d/runs2")
     ap.add_argument("--out", default="outputs/samples.png")
     ap.add_argument("--n", type=int, default=5)
+    ap.add_argument("--ours-run", default="m3_ours")
+    ap.add_argument("--flat-run", default="m3_no_tiers")
     ap.add_argument("--device", default="cuda:0")
     args = ap.parse_args()
 
@@ -121,8 +126,8 @@ def main():
     picked = [recs[i] for i in rng.choice(len(recs),
                                           min(args.n, len(recs)), replace=False)]
 
-    ours = load_model(args.runs, "m2_full", dev)
-    flat = load_model(args.runs, "m2_no_tiers", dev)
+    ours = load_model(args.runs, args.ours_run, dev)
+    flat = load_model(args.runs, args.flat_run, dev)
 
     cols = ["ground truth"] if has_gt else []
     cols += ["ours (tier-aware)", "flatten (single floor)", "per-tier"]

@@ -127,8 +127,9 @@ def main():
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--no-tiers", action="store_true",
                     help="ablation: hide the elevation field from the model")
-    ap.add_argument("--no-tier-bias", action="store_true",
-                    help="ablation: keep tier tokens, drop the attention bias")
+    ap.add_argument("--tier-bias", action="store_true",
+                    help="re-enable the tier-relative attention bias; it is off "
+                         "by default because it measured as having no effect")
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
@@ -150,7 +151,7 @@ def main():
 
     model = Elevate3D(d=args.d, layers=args.layers, heads=args.heads,
                       use_tiers=not args.no_tiers,
-                      use_tier_bias=not args.no_tier_bias).to(dev)
+                      use_tier_bias=args.tier_bias).to(dev)
     print(model_size(model), flush=True)
 
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr,
@@ -205,11 +206,18 @@ def main():
             if score < best:
                 best = score
                 torch.save({"model": model.state_dict(), "args": vars(args),
+                            "cfg": {"d": args.d, "layers": args.layers,
+                                    "heads": args.heads,
+                                    "use_tiers": not args.no_tiers,
+                                    "use_tier_bias": args.tier_bias},
                             "epoch": ep, "val": vl},
                            os.path.join(args.out, "best.pt"))
             with open(os.path.join(args.out, "history.json"), "w") as fh:
                 json.dump(hist, fh, indent=1)
     torch.save({"model": model.state_dict(), "args": vars(args),
+                "cfg": {"d": args.d, "layers": args.layers, "heads": args.heads,
+                        "use_tiers": not args.no_tiers,
+                        "use_tier_bias": args.tier_bias},
                 "epoch": args.epochs - 1}, os.path.join(args.out, "last.pt"))
     print(f"done in {time.time()-t0:.0f}s -> {args.out}", flush=True)
 

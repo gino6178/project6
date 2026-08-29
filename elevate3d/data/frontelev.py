@@ -64,7 +64,7 @@ PROGRAMS = (
         "sunken_lounge",
         seed_categories=("sofa", "l_sofa", "loveseat", "coffee_table",
                          "tv_stand", "armchair", "lounge_chair"),
-        rise=(-0.60, -0.12), area_frac=(0.12, 0.60),
+        rise=(-0.60, -0.12), area_frac=(0.04, 0.62),
         room_types=("living_room", "living_dining_room"),
         wall_backed=False, min_room_area=12.0,
         anchor_categories=("sofa", "l_sofa")),
@@ -72,7 +72,7 @@ PROGRAMS = (
         "tatami_platform",
         seed_categories=("double_bed", "single_bed", "kids_bed", "bunk_bed",
                          "nightstand"),
-        rise=(0.12, 0.55), area_frac=(0.12, 0.65),
+        rise=(0.12, 0.55), area_frac=(0.04, 0.66),
         room_types=("bedroom", "kids_room", "elderly_room", "second_bedroom",
                     "master_bedroom"),
         wall_backed=True, min_room_area=8.0, min_seeds=1,
@@ -81,14 +81,14 @@ PROGRAMS = (
         "study_dais",
         seed_categories=("desk", "shelf", "office_chair", "dressing_table",
                          "drawer_chest"),
-        rise=(0.12, 0.40), area_frac=(0.10, 0.50),
+        rise=(0.12, 0.40), area_frac=(0.04, 0.55),
         room_types=("library", "study"),
         wall_backed=True, min_room_area=7.0,
         anchor_categories=("desk",)),
     ElevationProgram(
         "dining_tier",
         seed_categories=("dining_table", "dining_chair", "sideboard"),
-        rise=(0.12, 0.45), area_frac=(0.12, 0.55),
+        rise=(0.12, 0.45), area_frac=(0.04, 0.60),
         room_types=("dining_room", "living_dining_room"),
         wall_backed=False, min_room_area=11.0,
         anchor_categories=("dining_table",)),
@@ -116,6 +116,29 @@ def _load_rise_prior():
 
 
 RISE_PRIOR = _load_rise_prior()
+
+
+def _load_geometry_prior():
+    """Measured area fraction and shared-edge width from real homes.
+
+    ``scripts/measure_real_geometry.py`` produces it. Only the two quantities
+    that are genuinely observable are here; transitions-per-room is not, because
+    MP3D-Elev constructs exactly one per room and calibrating against that would
+    be fitting to my own builder.
+    """
+    path = os.path.join(os.path.dirname(__file__), "geometry_prior.json")
+    try:
+        with open(path) as fh:
+            d = json.load(fh)
+        return {"area_frac": np.asarray(d["area_frac"]["values"], float),
+                "shared_edge": np.asarray(d["shared_edge_m"]["values"], float),
+                "wall_backed": float(d["wall_backed_frac"])}
+    except Exception:
+        return {"area_frac": np.zeros(0), "shared_edge": np.zeros(0),
+                "wall_backed": 0.73}
+
+
+GEOM_PRIOR = _load_geometry_prior()
 
 
 def sample_rise(program: "ElevationProgram", rng: np.random.Generator) -> float:
@@ -190,11 +213,14 @@ def _axis_rect(pts: np.ndarray, yaw: float, pad: float = 0.0) -> Polygon:
 
 
 def _snap_to_walls(region: Polygon, room: Polygon, yaw: float,
-                   tol: float = 0.55) -> Polygon:
-    """Push region edges that are nearly against a wall all the way to it.
+                   tol: float = 0.55, max_edges: int = 2) -> Polygon:
+    """Push the region's nearest edges against the wall they almost touch.
 
     A platform that stops 12 cm short of the wall is a modelling artefact, not a
-    design; real ones die into the wall.
+    design.  But snapping *every* near edge inflates the region to fill the
+    room: real elevated floors sit against one or two walls, not four, and the
+    measured median is 0.27 of the floor against the 0.41 this produced when it
+    snapped all four.  Only the ``max_edges`` closest edges move.
     """
     c, s = math.cos(-yaw), math.sin(-yaw)
     R = np.array([[c, -s], [s, c]])
@@ -204,10 +230,19 @@ def _snap_to_walls(region: Polygon, room: Polygon, yaw: float,
     gq = np.asarray(region.exterior.coords)[:-1] @ R.T
     lo, hi = gq.min(0), gq.max(0)
     rlo, rhi = rq.min(0), rq.max(0)
+    cands = []
     for k in (0, 1):
-        if lo[k] - rlo[k] < tol:
+        d = lo[k] - rlo[k]
+        if 0 <= d < tol:
+            cands.append((d, k, "lo"))
+        d = rhi[k] - hi[k]
+        if 0 <= d < tol:
+            cands.append((d, k, "hi"))
+    cands.sort()
+    for _, k, side in cands[:max_edges]:
+        if side == "lo":
             lo[k] = rlo[k]
-        if rhi[k] - hi[k] < tol:
+        else:
             hi[k] = rhi[k]
     rect = np.array([[lo[0], lo[1]], [hi[0], lo[1]], [hi[0], hi[1]], [lo[0], hi[1]]])
     return _largest(Polygon(rect @ Rb.T).intersection(room))
@@ -255,20 +290,32 @@ def _free_coords(boxes: list, k: int, lo_o: float, hi_o: float,
     return free
 
 
-def _snap_into_free(v: float, free: list, span: tuple, outward: int) -> float | None:
-    """Move a boundary onto a coordinate no object straddles.
+def _snap_into_free(v: float, free: list, span: tuple, outward: int,
+                    policy: str = "nearest") -> float | None:
+    """Move a boundary onto the nearest coordinate no object straddles.
 
-    Outward is strongly preferred: growing the tier only swallows more objects,
-    which is harmless, whereas shrinking can push a seed out of its own region.
+    This was outward-only at first, to stop a boundary shrinking past a seed.
+    But outward-only inflates every region: a nightstand's rectangle grows until
+    it reaches the next free coordinate, which in a furnished room can be the
+    far wall, and the corpus ended up with a median region of 0.41 of the floor
+    against a measured 0.27.  Nearest-first is the right rule now that
+    ``cut_lost_seed`` catches the case it was guarding against.
     """
     for a, b in free:
         if a - 1e-9 <= v <= b + 1e-9:
             return v
-    if outward < 0:
-        below = [b for a, b in free if b <= v + 1e-9]
-        return max(below) if below else v
+    below = [b for a, b in free if b <= v + 1e-9]
     above = [a for a, b in free if a >= v - 1e-9]
-    return min(above) if above else v
+    if policy == "outward":
+        if outward < 0:
+            return max(below) if below else v
+        return min(above) if above else v
+    cands = []
+    if below:
+        cands.append(max(below))
+    if above:
+        cands.append(min(above))
+    return min(cands, key=lambda c: abs(c - v)) if cands else v
 
 
 def _note(stats, why):
@@ -280,7 +327,8 @@ def _note(stats, why):
 def _resolve_cuts(region: Polygon, objs: Sequence, yaw: float,
                   room: Polygon, max_iter: int = 4,
                   stats: dict | None = None,
-                  seeds: Sequence = ()) -> Polygon | None:
+                  seeds: Sequence = (),
+                  policy: str = "nearest") -> Polygon | None:
     """Move the region's edges into the gaps between objects.
 
     A tier boundary that slices a sofa in half is not a design, it is an
@@ -303,8 +351,8 @@ def _resolve_cuts(region: Polygon, objs: Sequence, yaw: float,
             free = _free_coords(boxes, k, lo[1 - k], hi[1 - k], span[k])
             if not free:
                 return _note(stats, 'cut_no_free')
-            a = _snap_into_free(lo[k], free, span[k], outward=-1)
-            b = _snap_into_free(hi[k], free, span[k], outward=+1)
+            a = _snap_into_free(lo[k], free, span[k], -1, policy)
+            b = _snap_into_free(hi[k], free, span[k], +1, policy)
             if a is None or b is None or b - a < 0.8:
                 return _note(stats, 'cut_no_free_span')
             if abs(a - lo[k]) > 1e-6 or abs(b - hi[k]) > 1e-6:
@@ -495,7 +543,16 @@ def _transitions_for(region: Polygon, room_boundary, lo: Tier, hi: Tier,
     if not runs:
         return []
     runs.sort(key=lambda r: -float(np.linalg.norm(r[1] - r[0])))
-    return [make_transition(lo, hi, a, b) for a, b in runs[:3]]
+    keep = [runs[0]]
+    widest = float(np.linalg.norm(runs[0][1] - runs[0][0]))
+    for a, b in runs[1:]:
+        w = float(np.linalg.norm(b - a))
+        # a second way across only counts if it is a real one, not a sliver
+        if w >= max(1.2, 0.5 * widest):
+            keep.append((a, b))
+        if len(keep) == 2:
+            break
+    return [make_transition(lo, hi, a, b) for a, b in keep]
 
 
 # ---------------------------------------------------------------------------
@@ -542,11 +599,25 @@ def lift_scene(scene, rng: np.random.Generator,
                 and _footprint(o).area > 0.06]
 
     seeds = [o for o in grounded if o.category in program.seed_categories]
-    anchored = any(o.category in program.anchor_categories for o in seeds)
+    anchored = [o for o in seeds if o.category in program.anchor_categories]
     if len(seeds) < program.min_seeds and not anchored:
         return drop('too_few_seeds')
     if not seeds:
         return drop('too_few_seeds')
+
+    # Growing from the whole furniture group makes the region as large as the
+    # group, which in a 20 m2 3D-FRONT room is most of the floor — the measured
+    # real median is 0.27 of the room and a tenth of real cases are under 0.06.
+    # Real platforms are often under the bed alone.  Drawing a subset of the
+    # group reaches those sizes, and gives distinct variants of the same room
+    # instead of the one deterministic region the full group always produced.
+    if len(seeds) > 1:
+        order = list(rng.permutation(len(seeds)))
+        k = int(rng.integers(1, len(seeds) + 1))
+        chosen = [seeds[i] for i in order[:k]]
+        if anchored and not any(o in anchored for o in chosen):
+            chosen[0] = anchored[int(rng.integers(len(anchored)))]
+        seeds = chosen
 
     yaw = _principal_axes(room_poly)
     pts = np.vstack([np.asarray(_footprint(o, 0.12).exterior.coords)[:-1]
@@ -554,15 +625,30 @@ def lift_scene(scene, rng: np.random.Generator,
     region = _largest(_axis_rect(pts, yaw, 0.0).intersection(room_poly))
     if region is None:
         return drop('seed_rect_empty')
-    if program.wall_backed:
+    # 73 % of real elevated floors reach the outer wall, so this is a draw
+    # rather than a property of the program
+    if program.wall_backed or rng.random() < GEOM_PRIOR["wall_backed"]:
         region = _snap_to_walls(region, room_poly, yaw)
         if region is None:
             return drop('wall_snap_empty')
 
-    region = _resolve_cuts(region, grounded, yaw, room_poly, stats=stats,
-                           seeds=seeds)
-    if region is None:
+    # Draw the size real designers would give this feature, then let the two
+    # snapping policies compete for it.  "outward" always yields a region and
+    # tends to be too large; "nearest" matches the real distribution but can
+    # shrink past a seed and fail.  Choosing between them per room gets the
+    # measured distribution without paying "nearest"'s rejection rate.
+    target = float(rng.choice(GEOM_PRIOR["area_frac"])) \
+        if len(GEOM_PRIOR["area_frac"]) else 0.27
+    cands = []
+    for pol in ("nearest", "outward"):
+        r = _resolve_cuts(region, grounded, yaw, room_poly,
+                          stats=stats if pol == "outward" else None,
+                          seeds=seeds, policy=pol)
+        if r is not None:
+            cands.append((abs(r.area / room_poly.area - target), r))
+    if not cands:
         return drop('cuts_unresolvable')
+    region = min(cands, key=lambda t: t[0])[1]
 
     if not nudge_off_boundary(region, grounded, room_poly, stats=stats):
         return drop('nudge_failed')

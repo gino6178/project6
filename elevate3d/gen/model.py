@@ -10,13 +10,15 @@ from the floor no longer being one plane:
   tier tokens and the already-placed object tokens and points at one of them.
   ``z`` is then computed by ``ElevScene.resolve``, so contact is exact and
   floating is unrepresentable.
-* **A tier-relative attention bias.** Three learned scalars — same tier, across
-  tiers, parent/child — added to the attention logits. The original proposal
-  had a bias on continuous Δz; that is nearly always zero within a tier and
-  carries no signal, whereas the discrete relation is exactly what matters.
+* **A tier-relative attention bias** (``use_tier_bias``, **off by default**).
+  Three learned scalars — same tier, across tiers, parent/child — added to the
+  attention logits. It was proposed as the third contribution and measured as
+  doing nothing: with and without it the model is within noise on every metric
+  of both test sets. It is off by default and kept only so the null can be
+  re-checked when the corpus changes.
 
-``use_tiers=False`` strips the tier tokens and the bias, which is the ablation:
-the same model told nothing about the floor.
+``use_tiers=False`` strips the tier tokens, which is the ablation: the same
+model told nothing about the floor.
 """
 from __future__ import annotations
 
@@ -114,7 +116,7 @@ class TierBiasedBlock(nn.Module):
 class Elevate3D(nn.Module):
     def __init__(self, d: int = 512, layers: int = 8, heads: int = 8,
                  ff: int = 2048, drop: float = 0.1, use_tiers: bool = True,
-                 use_tier_bias: bool = True):
+                 use_tier_bias: bool = False):
         super().__init__()
         self.d = d
         self.use_tiers = use_tiers

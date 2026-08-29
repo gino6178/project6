@@ -25,8 +25,63 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import elevate3d  # noqa: F401
 
 from elevate3d.core.scene import ElevScene
-from elevate3d.data.frontelev import lift_scene
+from elevate3d.data.frontelev import GEOM_PRIOR, lift_scene
 from elevate3d.eval.violations import violations
+
+
+def match_to_real(pairs, key, target, bins=14, min_keep=0.45, seed=0):
+    """Thin a generated set so one statistic matches a measured distribution.
+
+    Widening the accept band lets more rooms through but does not make the
+    corpus *look* like real homes — the region size is driven by how big the
+    furniture group happens to be, not by how big real designers make it.
+    Keeping a subset whose histogram matches the real one fixes the marginal
+    without touching any geometry.
+
+    The subset is the largest one that matches; if matching would cost more
+    than ``1 - min_keep`` of the corpus, the constraint is relaxed and the
+    residual mismatch is reported rather than paid for.
+    """
+    if len(target) == 0 or not pairs:
+        return pairs, {}
+    rng = np.random.default_rng(seed)
+    vals = np.array([key(p) for p in pairs], dtype=float)
+    lo, hi = float(min(target.min(), vals.min())), float(max(target.max(), vals.max()))
+    edges = np.linspace(lo, hi + 1e-9, bins + 1)
+    p_real = np.histogram(target, bins=edges)[0].astype(float)
+    p_real /= max(p_real.sum(), 1)
+    idx = np.clip(np.digitize(vals, edges) - 1, 0, bins - 1)
+    n_gen = np.array([(idx == b).sum() for b in range(bins)], float)
+
+    live = (p_real > 0) & (n_gen > 0)
+    if not live.any():
+        return pairs, {}
+    ratios = n_gen[live] / p_real[live]
+    for q in (0, 10, 25, 50):
+        scale = float(np.percentile(ratios, q))
+        keep_n = np.minimum(np.round(p_real * scale), n_gen).astype(int)
+        if keep_n.sum() >= min_keep * len(pairs):
+            break
+    chosen = []
+    for b in range(bins):
+        if keep_n[b] <= 0:
+            continue
+        pool = np.flatnonzero(idx == b)
+        chosen.extend(rng.choice(pool, size=min(keep_n[b], len(pool)),
+                                 replace=False).tolist())
+    chosen.sort()
+    kept = [pairs[i] for i in chosen]
+    from scipy.stats import wasserstein_distance
+    stats = {
+        "before_n": len(pairs), "after_n": len(kept),
+        "wasserstein_before": round(float(wasserstein_distance(vals, target)), 4),
+        "wasserstein_after": round(float(wasserstein_distance(
+            vals[chosen], target)), 4) if chosen else None,
+        "median_before": round(float(np.median(vals)), 4),
+        "median_after": round(float(np.median(vals[chosen])), 4) if chosen else None,
+        "median_real": round(float(np.median(target)), 4),
+    }
+    return kept, stats
 
 FRONT = "/home/gino/data/reroom/3D-FRONT_raw/3D-FRONT"
 BBOX = "/home/gino/data/reroom/future_bboxes.json"
@@ -97,6 +152,9 @@ def main():
     ap.add_argument("--variants", type=int, default=3,
                     help="distinct elevation programs kept per room")
     ap.add_argument("--shard", type=int, default=2000, help="pairs per shard")
+    ap.add_argument("--match-real", action="store_true",
+                    help="thin the corpus so the region-size distribution "
+                         "matches the measured one")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
@@ -108,18 +166,7 @@ def main():
     print(f"building FRONT-Elev from {len(files)} houses -> {args.out}")
 
     stats = Counter()
-    buf, shard, n_pairs = [], 0, 0
-
-    def flush():
-        nonlocal buf, shard
-        if not buf:
-            return
-        p = os.path.join(args.out, f"pairs_{shard:03d}.jsonl.gz")
-        with gzip.open(p, "wt") as fh:
-            for r in buf:
-                fh.write(json.dumps(r) + "\n")
-        print(f"  wrote {p}  ({len(buf)} pairs)", flush=True)
-        buf, shard = [], shard + 1
+    allpairs = []
 
     with ProcessPoolExecutor(max_workers=args.workers, initializer=_init) as ex:
         futs = {ex.submit(do_house, os.path.join(args.root, f),
@@ -129,14 +176,28 @@ def main():
         for fut in as_completed(futs):
             rows, st = fut.result()
             stats.update(st)
-            buf.extend(rows)
-            n_pairs += len(rows)
+            allpairs.extend(rows)
             done += 1
-            if len(buf) >= args.shard:
-                flush()
             if done % 500 == 0:
-                print(f"  {done}/{len(files)} houses  pairs={n_pairs}", flush=True)
-    flush()
+                print(f"  {done}/{len(files)} houses  "
+                      f"pairs={len(allpairs)}", flush=True)
+
+    match = {}
+    if args.match_real:
+        allpairs, match = match_to_real(
+            allpairs, lambda p: p["elev"]["meta"]["region_frac"],
+            GEOM_PRIOR["area_frac"], seed=args.seed)
+        print("area-fraction matching:", json.dumps(match), flush=True)
+
+    n_pairs = len(allpairs)
+    shard = 0
+    for i in range(0, n_pairs, args.shard):
+        p = os.path.join(args.out, f"pairs_{shard:03d}.jsonl.gz")
+        with gzip.open(p, "wt") as fh:
+            for r in allpairs[i:i + args.shard]:
+                fh.write(json.dumps(r) + "\n")
+        print(f"  wrote {p}  ({len(allpairs[i:i+args.shard])} pairs)", flush=True)
+        shard += 1
 
     summary = {
         "houses": len(files),
@@ -148,6 +209,7 @@ def main():
         "rejections": {k: v for k, v in stats.most_common()
                        if k not in ("rooms", "lifted")},
         "shards": shard,
+        "area_frac_matching": match,
     }
     with open(os.path.join(args.out, "index.json"), "w") as fh:
         json.dump(summary, fh, indent=1)
