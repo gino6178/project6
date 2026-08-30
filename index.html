@@ -631,8 +631,11 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
     <img src="assets/fig_qualitative.png" alt="GT / ours / flatten / per-tier 在三個保留房間上的 3D 算圖">
     <figcaption><strong>圖 8a.</strong> 三個保留房間（每個來自不同的 3D-FRONT 場景），
     以檢索到的 3D-FUTURE 網格算圖，牆切到膝高以露出樓板，藍色是非基準層。
-    表格裡那一行 0.000 在這裡看得見：<code>flatten</code> 依定義把高程區留空，
-    這正是它 <code>elevation_f1</code> 為 0.000、違規率卻是全表最低的原因。
+    表格裡那一行 0.000 在這裡看得見：三個房間裡 <code>flatten</code> 都<i>沒有</i>
+    把任何物件指派到抬升層，這正是它 <code>elevation_f1</code> 為 0.000 的原因。
+    但要注意這不等於「高程區是空的」——三個房間有兩個仍有物件的足跡壓在抬升區上，
+    而它被釘在基準面，於是是<i>陷進</i>高台裡而不是站在上面。那就是 F1b，
+    也就是 F1 必須雙向計分的原因。
     面板取自高程區佔樓板 20% 以上的房間；論文所有數字用的是完整分布。</figcaption>
   </figure>
 

@@ -196,23 +196,30 @@ def place_objects(bpy, es, idx, max_objects=40):
             bpy.ops.object.join()
         ob = bpy.context.view_layer.objects.active
 
-        # the normalised model is unit-ish; scale its bounding box onto ours
+        # The importer expresses the Y-up -> Z-up conversion as an object
+        # rotation of +90 deg about X, and leaves the mesh data in the source
+        # frame. Setting rotation_euler for the yaw therefore *erases* that
+        # conversion and lays every object on its back. Bake the conversion into
+        # the mesh first; after this the object transform is identity and the
+        # local box is the world box, so the size fit below is measuring height
+        # against height rather than height against depth.
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+
         bb = np.array([list(v) for v in ob.bound_box], dtype=float)
         ext = bb.max(0) - bb.min(0)
         ext[ext < 1e-6] = 1.0
         ob.scale = (sz[0] / ext[0], sz[1] / ext[1], sz[2] / ext[2])
-        bpy.context.view_layer.update()
-        bb2 = np.array([ob.matrix_world @ v.co for v in ob.data.vertices[:2000]],
-                       dtype=float) if len(ob.data.vertices) else None
         ob.rotation_euler = (0.0, 0.0, float(o.yaw))
         bpy.context.view_layer.update()
-        # sit it on its support: recompute the world box after the rotation
+
+        # sit it on its support: the world box after scale and yaw
         vs = np.array([ob.matrix_world @ v.co for v in ob.data.vertices],
                       dtype=float)
-        centre = (vs.min(0) + vs.max(0)) / 2.0
+        lo, hi = vs.min(0), vs.max(0)
+        centre = (lo + hi) / 2.0
         ob.location = (float(o.xy[0]) - centre[0] + ob.location[0],
                        float(o.xy[1]) - centre[1] + ob.location[1],
-                       z - vs.min(0)[2] + ob.location[2])
+                       z - lo[2] + ob.location[2])
         ob.name = f"obj_{o.oid}"
         placed += 1
     return placed

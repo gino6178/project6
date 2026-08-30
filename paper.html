@@ -448,10 +448,13 @@ are the same fact.
   <figcaption><strong>Figure 5.</strong> Three held-out FRONT-Elev rooms, one per
   source 3D-FRONT scene, rendered from retrieved 3D-FUTURE meshes (walls cut
   knee-high so the floor stays visible; blue is the non-datum tier). The row of
-  numbers under the tables is visible here: <code>flatten</code> leaves the
-  elevated region empty by construction, which is exactly why its
-  <code>elevation_f1</code> is 0.000 and its violation rate is the lowest in the
-  table. Panels are drawn from rooms whose elevated region covers at least 20 %
+  numbers under the tables is visible here: <code>flatten</code> assigns
+  <i>nothing</i> to the elevated tier in any of the three rooms, which is exactly
+  why its <code>elevation_f1</code> is 0.000. Note what that does <i>not</i>
+  mean — in two of the three, an object's footprint still lands over the raised
+  region, and being pinned to the datum it is embedded in the platform rather
+  than standing on it. That is F1b, and it is the reason F1 is scored in both
+  directions. Panels are drawn from rooms whose elevated region covers at least 20 %
   of the floor; every number in this paper uses the whole distribution, whose
   calibrated median is far smaller.</figcaption>
 </figure>
