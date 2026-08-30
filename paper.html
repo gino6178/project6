@@ -94,7 +94,10 @@ out-of-distribution advantage we once attributed to geometry calibration was
 mostly corpus scale. A proposed larger-room fix was refuted by our own
 measurements. And the height signal inside the tier tokens is
 <b>indistinguishable from noise</b> at three seeds — what tier conditioning buys
-in distribution is knowing the floor is partitioned, not knowing how high.
+in distribution is knowing the floor is partitioned, not knowing how high. And
+building the renders for this paper surfaced a failure no elevation metric was
+positioned to see: a quarter of our objects extend outside the room, three times
+ground truth and double our own flat arm (§6.7).
 </div>
 
 <figure>
@@ -447,7 +450,11 @@ are the same fact.
   <img src="assets/fig_qualitative.png" alt="Ground truth, Elevate3D, flatten and per-tier on three held-out rooms, rendered in 3D">
   <figcaption><strong>Figure 5.</strong> Three held-out FRONT-Elev rooms, one per
   source 3D-FRONT scene, rendered from retrieved 3D-FUTURE meshes (walls cut
-  knee-high so the floor stays visible; blue is the non-datum tier). The row of
+  knee-high so the floor stays visible; blue is the non-datum tier). Sampled at
+  the same calibrated operating point as the §6.1 table — stop 0.8 / tier
+  temperature 1.8 for ours, 0.8 / 0.0 for <code>flatten</code>, 0.05 / 0.8 for
+  per-tier — read from the reported run rather than restated, so the panels show
+  the behaviour the tables measure. The row of
   numbers under the tables is visible here: <code>flatten</code> assigns
   <i>nothing</i> to the elevated tier in any of the three rooms, which is exactly
   why its <code>elevation_f1</code> is 0.000. Note what that does <i>not</i>
@@ -566,6 +573,54 @@ metric barely sees and <code>elevation F1</code> scores 0.000. Ours uses the
 elevation but places less cleanly on it, consistent with a tier precision of
 0.72.</p>
 
+<h3>6.7 What the elevation metrics never looked at</h3>
+<div class="note warn">
+<strong>This section exists because of the renders.</strong> Figures 1, 5 and 6
+were built after all the tables were written. The generated rooms in them read
+as incoherent in a way no reported number accounted for, which is a finding
+about the metrics rather than about the pictures. Every metric above counts an
+elevation-specific failure. Not one of them asks whether two pieces of furniture
+occupy the same space, or whether an object is inside the room at all.
+</div>
+
+<p>Measured with PhyScene's own evaluator <a class="cite" href="#r-physcene">[PhyScene]</a>
+on the same 300 held-out rooms, at the same calibrated operating point as §6.1.
+<code>Col_obj</code> is a 3D IoU, so two objects on different tiers that overlap
+in plan are correctly not a collision — which is why the flat evaluator can be
+reused here unchanged.</p>
+
+<div class="tw"><table>
+<thead><tr><th>method</th><th>Col_obj ↓</th><th>Col_scene ↓</th><th>R_out ↓</th><th>R_walkable ↑</th><th>obj/scene</th></tr></thead>
+<tbody>
+<tr><td>GT (3D-FRONT, lifted)</td><td class="win">0.367</td><td class="win">0.753</td><td class="win">0.084</td><td class="win">0.967</td><td>9.59</td></tr>
+<tr class="ours"><td><b>ours</b></td><td>0.468</td><td>0.873</td><td class="bad">0.246</td><td>0.875</td><td>9.12</td></tr>
+<tr><td>flatten</td><td class="bad">0.523</td><td>0.883</td><td>0.158</td><td>0.934</td><td>8.32</td></tr>
+<tr><td>per-tier</td><td>0.448</td><td class="bad">0.940</td><td>0.149</td><td class="bad">0.842</td><td>10.50</td></tr>
+</tbody></table></div>
+
+<p>Two things to read here, and only one of them is comfortable.</p>
+
+<p>The <b>ground truth is not clean</b> on this axis: 0.367 of 3D-FRONT objects
+intersect another object under PhyScene's evaluator. That is a property of
+3D-FRONT, not of our lift — project4 measured the same reference at 0.388 on its
+own room sample, and our anchor agrees to 0.0002 (§6.5). A generated scene at
+0.468 is worse than that reference but not by the margin the renders suggest.</p>
+
+<p>The uncomfortable one is <b>R_out</b>. A quarter of our objects have footprint
+outside the room, against 0.084 for ground truth and 0.158 for
+<code>flatten</code>. Our own K = 1 arm scores 0.128 (§6.5), close to real
+PhyScene's 0.122 — so <b>the elevation conditioning roughly doubles out-of-room
+placement</b>, and the flat arm of the same model does not have the problem. The
+mechanism is visible in the corpus: the calibrated regions are wall-anchored
+bands, so an object placed on a tier is placed against a wall by construction,
+and the support pointer that guarantees exact contact in <i>z</i> says nothing
+about staying inside the room in <i>x, y</i>.</p>
+
+<p>This is the strongest single argument against the paper as it stands. The
+support-tree parameterisation removes contact error by construction and buys
+nothing at all in the plane, and no elevation metric — ours included — was
+positioned to notice.</p>
+
 <h2 id="s7">7. Negative results</h2>
 
 <p>Reported at the same weight as §6 because several of them correct earlier
@@ -633,6 +688,10 @@ rearranged by our rules. §7.4 shows those rules have been demonstrably wrong
 before.</li>
 <li><b>Absolute quality.</b> 0.54 of generated scenes contain at least one
 violation against 0.003 for ground truth.</li>
+<li><b>Nothing in the method addresses the plane.</b> §6.7: 0.246 of our objects
+extend outside the room against 0.084 for ground truth, and our own flat arm
+scores 0.128. The contribution is a representation for <i>z</i>; it does not
+help, and here appears to actively hurt, placement in <i>x, y</i>.</li>
 <li><b>Regions are convex.</b> 15 % of real elevated floors are not; those are
 represented by their convex hull.</li>
 <li><b>No embodied experiment.</b> CCN is a geometric computation validated against no

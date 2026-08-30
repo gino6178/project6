@@ -1,0 +1,46 @@
+{
+ "n": 300,
+ "eval_ref": "evalG_frontelev.json",
+ "stop_thresholds": {
+  "ours": 0.8,
+  "bias": 0.8,
+  "flatten": 0.8,
+  "per_tier": 0.05
+ },
+ "tier_temps": {
+  "ours": 1.8,
+  "bias": 1.8,
+  "flatten": 0.0,
+  "per_tier": 0.8
+ },
+ "results": {
+  "gt": {
+   "ps_Col_obj": 0.3667853710473679,
+   "ps_Col_scene": 0.7533333333333333,
+   "ps_R_out": 0.08424174681527621,
+   "ps_R_walkable": 0.9672536416141235,
+   "ps_n_objects": 9.59
+  },
+  "ours": {
+   "ps_Col_obj": 0.468354907241719,
+   "ps_Col_scene": 0.8733333333333333,
+   "ps_R_out": 0.24618922259819417,
+   "ps_R_walkable": 0.875255468198031,
+   "ps_n_objects": 9.123333333333333
+  },
+  "flatten": {
+   "ps_Col_obj": 0.5227385128986118,
+   "ps_Col_scene": 0.8833333333333333,
+   "ps_R_out": 0.15815416523122808,
+   "ps_R_walkable": 0.9341064161185682,
+   "ps_n_objects": 8.316666666666666
+  },
+  "per_tier": {
+   "ps_Col_obj": 0.4483040730857463,
+   "ps_Col_scene": 0.94,
+   "ps_R_out": 0.1493275688027741,
+   "ps_R_walkable": 0.8422343889162699,
+   "ps_n_objects": 10.496666666666666
+  }
+ }
+}

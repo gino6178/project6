@@ -32,6 +32,21 @@ ASSETS = os.path.join(ROOT, "assets")
 CORPUS = "/home/gino/data/elevate3d/frontelev5"
 MP3D = "/home/gino/data/elevate3d/mp3d_elev/rooms.jsonl"
 RUNS = "/home/gino/data/elevate3d/runs6"
+# The reported runs. Every table in the paper is sampled at a *calibrated*
+# operating point -- stop_p chosen so the mean object count matches ground
+# truth, tier_t so tier use does -- and those thresholds differ per method.
+# Hard-coding a round number here would put the figures at an operating point
+# no table describes, which is how the first version of Figure 5 ended up with
+# 0.63 floor coverage against ground truth's 0.34.
+EVAL_FRONT = os.path.join(ROOT, "outputs", "evalG_frontelev.json")
+EVAL_MP3D = os.path.join(ROOT, "outputs", "evalI_mp3d.json")
+
+
+def operating_point(eval_json, method, default_stop=0.5, default_t=0.0):
+    d = json.load(open(eval_json))
+    stop = (d.get("stop_thresholds") or {}).get(method, default_stop)
+    t = (d.get("tier_temps") or {}).get(method, default_t)
+    return float(stop), float(t)
 
 
 def corpus(n_files: int = 2, limit: int = 600):
@@ -86,8 +101,12 @@ def retrofit_jids(d: dict, seed: int = 0) -> dict:
     for o in d["objects"]:
         if o.get("jid"):
             continue
+        # No `exclude`: retrieval is deterministic in the requested box, so two
+        # objects of the same category and size get the same mesh. Forcing a
+        # distinct model per object gave rooms four different dining chairs
+        # around one table, which reads as clutter rather than as a layout.
         got = b.retrieve(o["category"], np.asarray(o["size"], float),
-                         topk=1, exclude=used, rng=rng,
+                         topk=1, rng=rng,
                          max_size=np.asarray(o["size"], float) * 1.02)
         if got:
             o["jid"] = got[0][0].aid
@@ -171,6 +190,11 @@ def sample_qualitative(device, n_rooms=3):
 
     ours = load_model_generic(RUNS, "m6_ours", dev)
     flat = load_model_generic(RUNS, "m6_no_tiers", dev)
+    op = {m: operating_point(EVAL_FRONT, m)
+          for m in ("ours", "flatten", "per_tier")}
+    print("operating point, from " + os.path.basename(EVAL_FRONT) + ": "
+          + ", ".join(f"{m} stop={p} tier_t={t}" for m, (p, t) in op.items()),
+          flush=True)
 
     panels, caps = [], []
     for i, r in enumerate(cand):
@@ -178,13 +202,13 @@ def sample_qualitative(device, n_rooms=3):
         scenes = [
             ("gt", r["elev"]),
             ("ours", retrofit_jids(sample_scene(
-                ours, r["elev"], dev, rng=rg, stop_p=0.5,
-                tier_t=1.0).to_dict())),
+                ours, r["elev"], dev, rng=rg, stop_p=op["ours"][0],
+                tier_t=op["ours"][1]).to_dict())),
             ("flatten", retrofit_jids(sample_scene(
-                flat, r["elev"], dev, rng=rg, stop_p=0.5,
-                tier_t=0.0, flatten=True).to_dict())),
+                flat, r["elev"], dev, rng=rg, stop_p=op["flatten"][0],
+                tier_t=op["flatten"][1], flatten=True).to_dict())),
             ("pertier", retrofit_jids(per_tier_sample(
-                flat, r["elev"], dev, rg, 0.5, 0.8).to_dict())),
+                flat, r["elev"], dev, rg, *op["per_tier"]).to_dict())),
         ]
         for tag, sc in scenes:
             panels.append({"name": f"qual{i}_{tag}", "scene": sc,
@@ -219,10 +243,12 @@ def sample_mp3d(device, n=4):
     print(f"mp3d on {len(pick)} rooms from {len(seen)} buildings", flush=True)
 
     model = load_model_generic(RUNS, "m6_ours", dev)
+    stop, tier_t = operating_point(EVAL_MP3D, "ours", default_t=1.8)
+    print(f"operating point: stop={stop} tier_t={tier_t}", flush=True)
     panels, caps = [], []
     for i, r in enumerate(pick):
         rg = np.random.default_rng(1)
-        sc = sample_scene(model, r, dev, rng=rg, stop_p=0.5, tier_t=1.0)
+        sc = sample_scene(model, r, dev, rng=rg, stop_p=stop, tier_t=tier_t)
         panels.append({"name": f"mp3d{i}", "scene": retrofit_jids(sc.to_dict()),
                        "res": [760, 540]})
         hs = sorted({round(t["height"], 2) for t in r["field"]["tiers"]})

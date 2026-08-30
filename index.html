@@ -780,6 +780,36 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
     <span class="lbl">三輪改進沒有動搖的一件事</span>
     <p>flatten 在兩個測試集上仍然放 <strong>0.00 個</strong>物件在非基準層，只覆蓋 3.4% 的高程樓板（GT 45.7%）。它的低違規率是「完全不使用高程」換來的。每一項違規都在講物件放錯分區，而它從不把物件放上去 —— 分開我們與它的不是準度，是<strong>願不願意使用高程</strong>。目前的目標函數只懲罰「用錯」，沒有任何一項獎勵「用對」。</p>
   </div>
+
+  <div class="sh"><span class="n">§8.7</span><h2>高程指標從來沒看的東西</h2></div>
+  <div class="prose">
+    <p><strong>這一節的存在是因為算圖。</strong>圖 0、8a、8b 都是所有表格寫完之後才做的。
+    圖裡的生成房間看起來零散，而沒有任何一個已報告的數字能解釋這件事——那是關於指標的發現，
+    不是關於圖的。上面每一個指標都在數高程專屬的失敗，沒有一個問「兩件家具是不是佔了同一塊空間」，
+    或「這個物件到底在不在房間裡」。</p>
+    <p>用 PhyScene 自己的評測器，在同樣 300 間保留房、同樣校準過的工作點上量。
+    <code>Col_obj</code> 是 3D IoU，所以在不同層上平面重疊的兩個物件不會被誤判成碰撞。</p>
+    <table>
+      <thead><tr><th>方法</th><th class="num">Col_obj ↓</th><th class="num">Col_scene ↓</th><th class="num">R_out ↓</th><th class="num">R_walkable ↑</th><th class="num">obj/scene</th></tr></thead>
+      <tbody>
+      <tr><td>GT（3D-FRONT 抬升）</td><td class="num best">0.367</td><td class="num best">0.753</td><td class="num best">0.084</td><td class="num best">0.967</td><td class="num">9.59</td></tr>
+      <tr><td><strong>ours</strong></td><td class="num">0.468</td><td class="num">0.873</td><td class="num worst">0.246</td><td class="num">0.875</td><td class="num">9.12</td></tr>
+      <tr><td>flatten</td><td class="num worst">0.523</td><td class="num">0.883</td><td class="num">0.158</td><td class="num">0.934</td><td class="num">8.32</td></tr>
+      <tr><td>per-tier</td><td class="num">0.448</td><td class="num worst">0.940</td><td class="num">0.149</td><td class="num worst">0.842</td><td class="num">10.50</td></tr>
+      </tbody>
+    </table>
+    <p><strong>ground truth 本身就不乾淨</strong>：3D-FRONT 有 0.367 的物件在 PhyScene 評測器下
+    與別的物件相交。那是 3D-FRONT 的性質不是我們抬升造成的——project4 在自己的房間樣本上量到
+    0.388，我們的錨定值差 0.0002。</p>
+    <p>難堪的是 <strong>R_out</strong>。我們有四分之一的物件足跡落在房間外，GT 是 0.084，
+    <code>flatten</code> 是 0.158。而我們自己的 K = 1 分支是 0.128，和真實 PhyScene 的 0.122 相當
+    ——<strong>高程條件化把「跑出房間」大約翻倍了</strong>，而同一個模型的平面分支沒有這個問題。
+    機制在語料庫裡看得到：校準後的區域是貼牆帶，所以放在層上的物件依定義就貼著牆，
+    而那個保證 <em>z</em> 方向精確接觸的 support pointer，對 <em>x, y</em> 要不要留在房間裡
+    一句話都沒說。</p>
+    <p>這是目前對這篇論文最強的一個反對意見。support tree 參數化按定義消除了接觸誤差，
+    在平面上什麼都沒買到，而包括我們自己在內的高程指標，都不在能發現它的位置上。</p>
+  </div>
 </section>
 
 <section id="s9">
