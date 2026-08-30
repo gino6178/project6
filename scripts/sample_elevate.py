@@ -149,6 +149,9 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
     c = room.mean(0)
     s = float(a["room"][0])
 
+    from shapely.geometry import Polygon as _Poly
+    room_shape = _Poly(room).buffer(0)
+
     field = ElevationField.from_dict(rec["field"])
     slot_tid = {i: t["tid"] for i, t in enumerate(rec["field"]["tiers"][:MAX_TIERS])}
     datum_slot = int(np.argmax([t.area for t in field.tiers]))
@@ -232,6 +235,19 @@ def sample_scene(model, rec, device, temperature: float = 1.0,
             xy = g["xy"].sample(h, 1.0)[0].float().cpu().numpy() * s + c
             fp = _fp(xy, yaw, size)
             cost = 0.0
+            # Staying inside the room, weighted above everything else.
+            #
+            # Without this term every other term is *zero* outside the room --
+            # nothing to overlap out there, no treads to block -- so whenever an
+            # object could not be fitted into its tier, the least bad of the
+            # draws was systematically the one that had left the building.
+            # Measured before the fix: of the placements that ended up only
+            # partly inside their tier, 0.818 were also partly outside the room,
+            # against 0.057 for the ones that fitted. Giving up tier membership
+            # to stay inside the room is always the right trade, so this
+            # outweighs the tier term.
+            if fp.area > 1e-9:
+                cost += 4.0 * fp.difference(room_shape).area / fp.area
             if tier_shape is not None and fp.area > 1e-9:
                 cost += 2.0 * (1.0 - tier_shape.intersection(fp).area / fp.area)
             for pfp in placed_fp:
