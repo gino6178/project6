@@ -162,6 +162,14 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);
   </div>
 </header>
 
+<figure>
+  <img src="assets/fig_teaser.png" alt="同一個房間：平面樓板 vs 兩層高程場">
+  <figcaption><strong>圖 0.</strong> 同一個 3D-FRONT 房間，以真實 3D-FUTURE 網格算圖。
+  <b>左</b>是目前所有場景生成方法能表達的極限：一個樓板平面，所有物件都在上面。
+  <b>右</b>是同一個房間作為高程場，下沉客廳位於 &minus;0.37 m。這個落差不是裝飾——它改變了
+  哪些物件能放在哪裡、存在哪些通行路徑，以及哪些失敗模式才有定義。</figcaption>
+</figure>
+
 <div class="band">
   <div>
     <span class="tag ok">前提成立</span>
@@ -408,6 +416,13 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
 
 <section id="s6">
   <div class="sh"><span class="n">§6</span><h2>評測指標</h2></div>
+  <figure>
+    <img src="assets/fig_violations.svg" alt="六種高程專屬違規的剖面示意">
+    <figcaption><strong>圖 6a.</strong> 六種違規的剖面定義。F1 特意拆成兩半：
+    把所有東西都放在最低層的方法永遠不可能「懸挑」，因為底下沒有東西可以懸；
+    它只會以另一個方向失敗——把家具撞進旁邊的高台裡。沒有 F1b，那個失敗不會被計入，
+    而反方向的同一個錯誤卻要被罰。</figcaption>
+  </figure>
 
   <h3>只有樓板不平時才存在的失敗</h3>
   <div class="prose">
@@ -611,6 +626,21 @@ S = ( P , { (R<sub>k</sub>, h<sub>k</sub>) }<sub>k=1..K</sub> , T )
   <div class="prose">
     <p><code>ours</code> 與 <code>+bias</code> 在三輪、兩個語料庫、兩個測試集上都在噪聲範圍內。預設關閉，應該從論文拿掉。</p>
   </div>
+
+  <figure>
+    <img src="assets/fig_qualitative.png" alt="GT / ours / flatten / per-tier 在三個保留房間上的 3D 算圖">
+    <figcaption><strong>圖 8a.</strong> 三個保留房間（每個來自不同的 3D-FRONT 場景），
+    以檢索到的 3D-FUTURE 網格算圖，牆切到膝高以露出樓板，藍色是非基準層。
+    表格裡那一行 0.000 在這裡看得見：<code>flatten</code> 依定義把高程區留空，
+    這正是它 <code>elevation_f1</code> 為 0.000、違規率卻是全表最低的原因。
+    面板取自高程區佔樓板 20% 以上的房間；論文所有數字用的是完整分布。</figcaption>
+  </figure>
+
+  <figure>
+    <img src="assets/fig_mp3d.png" alt="Elevate3D 在四個真實 MP3D-Elev 高程場上的輸出">
+    <figcaption><strong>圖 8b.</strong> Elevate3D 在四個 MP3D-Elev 房間上的輸出，
+    每棟建築取一間。房間輪廓與層高都是真實 Matterport3D 建築的標註，不是程序生成的。</figcaption>
+  </figure>
 
   <figure>
     <img src="assets/samples_frontelev.png" alt="四種方法在同一批房間上的生成結果">

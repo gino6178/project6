@@ -5,8 +5,10 @@ whether a generated room *looks* like a real one, which is the question FID
 answers for every other scene-synthesis paper. That gap is real and a reviewer
 is right to press it.
 
-What is reported here is **not image FID**. There is no renderer on this machine,
-so there are no photographs to compare. Instead each layout is rasterised to a
+What is reported here is **not image FID**. There is a renderer (`render3d.py`,
+used for the paper's figures), but it draws one fixed camera over untextured
+architecture, so a Fréchet distance over its output would largely measure our own
+shading choices rather than the layouts. Instead each layout is rasterised to a
 top-down semantic map — the room, the tiers shaded by height, and every object
 footprint coloured by category — and the Fréchet distance is taken between real
 and generated feature distributions under a frozen DINOv3 ViT-L/16.

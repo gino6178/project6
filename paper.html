@@ -97,6 +97,17 @@ measurements. And the height signal inside the tier tokens is
 in distribution is knowing the floor is partitioned, not knowing how high.
 </div>
 
+<figure>
+  <img src="assets/fig_teaser.png" alt="The same room generated on one floor plane and on a two-tier elevation field">
+  <figcaption><strong>Figure 1.</strong> The same 3D-FRONT room, rendered from
+  real 3D-FUTURE meshes. <b>Left</b>, what every current scene-synthesis method
+  can express: one floor plane, every object on it. <b>Right</b>, the same room
+  as an elevation field with a sunken lounge at &minus;0.37&nbsp;m. The drop is
+  not decoration — it changes which objects can stand where, which routes exist,
+  and which failures are even definable. 0 of the 37,529 3D-FRONT rooms we
+  parsed contain a floor height change; 12 of 16 real buildings do.</figcaption>
+</figure>
+
 <h2 id="s1">1. Introduction</h2>
 
 <p>Every learned indoor layout method we are aware of represents a room as a
@@ -232,7 +243,7 @@ benchmark.</p>
 
 <figure>
   <img src="assets/corpus_examples.png" alt="FRONT-Elev samples: flat original, lifted elevation field, section">
-  <figcaption><strong>Figure 1.</strong> Corpus samples. Left the original flat
+  <figcaption><strong>Figure 2.</strong> Corpus samples. Left the original flat
   layout, centre the lifted field (red = transition, S<i>n</i> = tread count),
   right a section with per-agent reachability.</figcaption>
 </figure>
@@ -251,6 +262,16 @@ metrics are intrinsic to a generated layout.</p>
 <p>Collision and floating rate <a class="cite" href="#r-physcene">[PhyScene]</a>
 are structurally blind here: they were defined where every object shares a plane,
 so none of them can see a sofa hanging over the lip of a sunken lounge.</p>
+
+<figure>
+  <img src="assets/fig_violations.svg" alt="Section views of the six elevation-specific failure modes">
+  <figcaption><strong>Figure 3.</strong> The six failures, in section. F1 is
+  split deliberately: a method that puts everything on the lowest tier can never
+  <i>overhang</i> anything, because there is nothing below it to hang over. It
+  can only fail by driving furniture into the platform beside it, and without
+  F1b that failure goes uncounted while the same error the other way round is
+  penalised.</figcaption>
+</figure>
 
 <div class="tw"><table>
 <thead><tr><th>id</th><th>failure</th><th>definition</th></tr></thead>
@@ -312,6 +333,15 @@ correctly" from "declined to use it" is not measuring the task.
 <p>Two stages. <b>M1</b> (3.5 M) proposes the elevation field; <b>M2</b> (27.8 M)
 lays out on it. A third module of the original design became an analytic
 rejection cost inside the sampler rather than a learned component.</p>
+
+<figure>
+  <img src="assets/fig_pipeline.svg" alt="Elevate3D pipeline: FieldNet proposes the elevation field, the layout transformer points at supports, resolve reads z off the tree">
+  <figcaption><strong>Figure 4.</strong> The pipeline, and the single decision it
+  turns on. M2 never predicts a height: it points at a support, and
+  \(z_i = \mathrm{top}(\pi(i)) + \Delta z_i\) is resolved in one pass over the
+  tree. Contact is therefore exact by construction rather than a penalty term
+  the optimiser can trade away.</figcaption>
+</figure>
 
 <h3>5.1 M1 — the field</h3>
 <p>A field reduces to a program label, a convex region in the room's principal
@@ -413,6 +443,19 @@ are the same fact.
 <tr><td>CCN sweeping robot ↑</td><td>0.629</td><td>0.575</td><td>0.596</td></tr>
 </tbody></table></div>
 
+<figure>
+  <img src="assets/fig_qualitative.png" alt="Ground truth, Elevate3D, flatten and per-tier on three held-out rooms, rendered in 3D">
+  <figcaption><strong>Figure 5.</strong> Three held-out FRONT-Elev rooms, one per
+  source 3D-FRONT scene, rendered from retrieved 3D-FUTURE meshes (walls cut
+  knee-high so the floor stays visible; blue is the non-datum tier). The row of
+  numbers under the tables is visible here: <code>flatten</code> leaves the
+  elevated region empty by construction, which is exactly why its
+  <code>elevation_f1</code> is 0.000 and its violation rate is the lowest in the
+  table. Panels are drawn from rooms whose elevated region covers at least 20 %
+  of the floor; every number in this paper uses the whole distribution, whose
+  calibrated median is far smaller.</figcaption>
+</figure>
+
 <h3>6.4 Out of distribution: 72 real elevation fields</h3>
 
 <div class="tw"><table>
@@ -437,8 +480,17 @@ leave-one-building-out ranges do not overlap.
 </div>
 
 <figure>
+  <img src="assets/fig_mp3d.png" alt="Elevate3D output on four real MP3D-Elev elevation fields">
+  <figcaption><strong>Figure 6.</strong> Elevate3D on four MP3D-Elev rooms, one
+  per building. The room outlines and the tier heights are annotations of real
+  Matterport3D buildings, not procedural: nothing about these floor plans was
+  seen in training, and the model was trained only on the synthetic FRONT-Elev
+  fields.</figcaption>
+</figure>
+
+<figure>
   <img src="assets/samples_mp3d.png" alt="Three methods on real MP3D-Elev fields">
-  <figcaption><strong>Figure 2.</strong> Real elevation fields from HouseLayout3D.
+  <figcaption><strong>Figure 7.</strong> Plan views of the same comparison on real elevation fields from HouseLayout3D.
   Outlined objects violate an elevation constraint. In two of the four rooms the
   raised tier is entirely empty in the <code>flatten</code> column.</figcaption>
 </figure>
@@ -467,8 +519,11 @@ listed for completeness but solves a different problem (transplanting a referenc
 layout, not free generation).</p>
 
 <h3>6.6 A distributional appearance measure</h3>
-<p>Every metric so far counts a geometric violation. With no renderer available we
-rasterise each layout to a top-down map — R the category, G the height of the
+<p>Every metric so far counts a geometric violation. The renders in this paper
+are produced by a Blender pipeline built after the fact and are not part of the
+evaluation: they are one deterministic camera, one lighting rig, and untextured
+architecture, so a Fréchet distance over them would mostly measure our shading.
+The measurement instead rasterises each layout to a top-down map — R the category, G the height of the
 surface, B occupancy — and take a Fréchet distance between real and generated
 feature distributions under a frozen DINOv3 ViT-L/16
 <a class="cite" href="#r-dino">[DINOv3]</a>. <b>This is not image FID and is not
@@ -580,6 +635,12 @@ represented by their convex hull.</li>
 <li><b>No embodied experiment.</b> CCN is a geometric computation validated against no
 simulator and no robot. The embodied framing is a motivation, not a result.</li>
 <li><b>One dataset family.</b> Every layout derives from 3D-FRONT.</li>
+<li><b>The renders are diagrams, not photographs.</b> Figures 1, 5 and 6 use real
+3D-FUTURE meshes retrieved by category and size, but the architecture is
+untextured, the walls are cut knee-high to expose the floor, and the camera and
+lights are fixed. They exist to make the elevation legible. No number in this
+paper is computed from them, and none should be compared to a rendered result
+from another paper.</li>
 </ul>
 
 <h2 id="s9">References</h2>
