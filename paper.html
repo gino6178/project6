@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elevate3D · Scene Synthesis on Non-Planar Floors</title>
+<meta name="description" content="Elevation fields for indoor scene synthesis: a support-tree parameterisation, a calibrated corpus, an out-of-distribution set of real elevation fields, and a two-stage generator — reported with its negative results.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%93%90%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+      integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+        onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<style>
+  :root{--ink:#111;--mut:#5c5c5c;--line:#e6e6e6;--acc:#a8412a;--acc2:#2a6f7a;--panel:#f7f7f7;--good:#2a7a2a;}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;background:#fff;color:var(--ink);
+       font:17px/1.68 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:34px 22px 60px}
+  h1{font-size:30px;margin:0 0 6px;font-weight:700;letter-spacing:-.01em;line-height:1.22}
+  .authors{color:var(--mut);font-size:16px;margin:2px 0 2px}
+  .venue{color:var(--acc);font-size:14px;font-weight:600;margin:0 0 12px}
+  .links{font-size:14px;margin:0 0 18px}
+  .links a{color:var(--acc2);text-decoration:none;font-weight:600;margin-right:14px}
+  .links a:hover{text-decoration:underline}
+  h2{font-size:22px;margin:48px 0 12px;font-weight:700;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+  h3{font-size:18px;margin:26px 0 6px;font-weight:600}
+  h4{font-size:15.5px;margin:18px 0 4px;font-weight:600;color:#333}
+  p{margin:0 0 14px}
+  ul,ol{margin:0 0 14px;padding-left:22px} li{margin-bottom:6px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:var(--panel);padding:1px 5px;border-radius:3px}
+  pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.7;
+      background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px 16px;overflow-x:auto;margin:16px 0}
+  .abstract{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px 18px;margin:18px 0 6px;font-size:16px}
+  .abstract b{display:block;margin-bottom:6px}
+  .lead{font-size:15px;color:var(--mut);margin:-2px 0 16px}
+  .note{background:var(--panel);border-left:3px solid var(--acc);padding:12px 16px;border-radius:0 3px 3px 0;font-size:15px;margin:18px 0;color:#3c3c3c}
+  .note strong{color:var(--ink)} .note.warn{border-left-color:#b0752a} .note.g{border-left-color:var(--good)}
+  .tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:10px;background:var(--acc);color:#fff;vertical-align:middle;margin-left:6px}
+  .tag.g{background:var(--good)} .tag.b{background:var(--acc2)}
+  a.cite{color:var(--acc2);text-decoration:none;font-weight:600} a.cite:hover{text-decoration:underline}
+  figure{margin:22px 0}
+  figure img{width:100%;display:block;border-radius:3px;background:#fff;border:1px solid var(--line)}
+  figcaption{color:var(--mut);font-size:13.5px;margin-top:8px;line-height:1.55}
+  figcaption strong{color:var(--ink)}
+  .tw{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0 16px}
+  th,td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left;white-space:normal}
+  thead th{font-weight:600;border-bottom:1.5px solid var(--ink)}
+  tbody tr:hover{background:#fafafa} tr.ours td{background:#fbf3f0}
+  tr.rule td{border-top:1.5px solid var(--line)}
+  .win{font-weight:700;color:var(--good)} .bad{color:var(--acc)}
+  .refs{font-size:14.5px;color:#333} .refs li{margin-bottom:8px}
+  footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:13px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Elevate3D: Indoor Scene Synthesis on Non-Planar Floors</h1>
+<p class="authors">Research log — project6</p>
+<p class="venue">Working draft · 2026-08-30 · not submitted</p>
+<p class="links">
+  <a href="index.html">Method &amp; results log</a>
+  <a href="https://github.com/gino6178/project6">Code</a>
+  <a href="https://github.com/gino6178/project5">project5 (ReRoom-E2E)</a>
+  <a href="https://github.com/gino6178/project4">project4 (ReRoom)</a>
+</p>
+
+<div class="abstract">
+<b>Abstract</b>
+Indoor scene synthesis stores a room as a 2D polygon and places every object at
+\(z=0\). We measured how literal that is: across all 37,529 rooms of 3D-FRONT the
+height spread of the floor mesh is <b>exactly zero</b>, while structural
+annotations of 16 real Matterport3D buildings show <b>12 of 16</b> have an
+intra-storey floor height change. We formalise the floor as a piecewise-constant
+<i>elevation field</i>, parameterise object height through a support tree so that
+contact is exact by construction, and build two datasets: FRONT-Elev, 18,217
+paired flat/elevated layouts whose geometry is calibrated against measured real
+statistics, and MP3D-Elev, 72 real elevation fields that the generator never
+produced. We introduce five elevation-specific failure modes that collision and
+floating rates cannot see, a capability-conditioned reachability measure, and an
+<code>elevation F1</code> that a method cannot win by declining to use the
+elevation. A two-stage generator (3.5 M field model + 27.8 M layout transformer)
+runs the task end to end.
+<br><br>
+We report the negative results at the same weight as the positive ones. A
+tier-relative attention bias had no measurable effect across every round. The
+out-of-distribution advantage we once attributed to geometry calibration was
+mostly corpus scale. A proposed larger-room fix was refuted by our own
+measurements. And the height signal inside the tier tokens is
+<b>indistinguishable from noise</b> at three seeds — what tier conditioning buys
+in distribution is knowing the floor is partitioned, not knowing how high.
+</div>
+
+<h2 id="s1">1. Introduction</h2>
+
+<p>Every learned indoor layout method we are aware of represents a room as a
+polygon in the plane and an object as \((x, y, \theta)\) on it
+<a class="cite" href="#r-atiss">[ATISS]</a><a class="cite" href="#r-diffuscene">[DiffuScene]</a><a class="cite" href="#r-physcene">[PhyScene]</a>.
+Recent work has added rich support hierarchies <i>above</i> that plane — objects
+on tables, on shelves, on wall-mounted units
+<a class="cite" href="#r-hsm">[HSM]</a><a class="cite" href="#r-architect">[Architect]</a> —
+and physical guidance for contact and collision
+<a class="cite" href="#r-spread">[SPREAD]</a>. The plane itself has stayed flat.</p>
+
+<p>Real homes are not. Sunken lounges, tatami platforms, split levels and
+mezzanines make the floor a height field rather than a constant, and that is
+exactly the case no current output space can express.</p>
+
+<h3>1.1 What we measured first</h3>
+
+<p>Before building anything we checked the premise. Accumulating floor-mesh
+triangle area against height for every room in all 6,813 3D-FRONT houses:</p>
+
+<div class="tw"><table>
+<thead><tr><th>3D-FRONT</th><th>value</th></tr></thead>
+<tbody>
+<tr><td>rooms with a <code>Floor</code> mesh</td><td>37,529</td></tr>
+<tr><td>rooms with any floor height variation</td><td class="win">0</td></tr>
+<tr><td>maximum height spread, whole dataset</td><td class="win">0.0000 m</td></tr>
+<tr><td>rooms with spread &gt; 5 cm</td><td>0</td></tr>
+</tbody></table></div>
+
+<p>Not "mostly flat" — identically zero at every percentile. The dataset does
+contain 3,925 <code>CustomizedPlatform</code> meshes, but every layout parser
+filters on <code>type == "Floor"</code>, so none are ever read; and they carry
+almost no furniture, so they are decorative geometry rather than supervision.</p>
+
+<p>The same question on real scans, using HouseLayout3D's structural annotations
+of 16 Matterport3D buildings <a class="cite" href="#r-hl3d">[HouseLayout3D]</a>:
+<b>12 of 16 buildings</b> have two floors inside one storey that touch in plan and
+differ in height, 218 such pairs, median rise <b>0.38 m</b>.</p>
+
+<div class="note">
+A third measurement, incidental but load-bearing later. Lifting 3D-FRONT into a
+support-tree representation shows only <b>66.4 %</b> of objects are in exact
+contact with their supporting surface; 18.9 % are off by under 2 cm and 0.25 %
+are sunk below it. A third of the "ground truth" everyone trains on is not in
+contact.
+</div>
+
+<h3>1.2 Contributions</h3>
+<ol>
+<li><b>Elevation fields</b> as a strict generalisation of the current setting:
+\(K = 1\) reproduces it exactly (§2).</li>
+<li><b>A support-tree parameterisation</b> in which \(z\) is derived, so contact
+is exact and the contact loss of the obvious formulation is identically zero (§2.2).</li>
+<li><b>FRONT-Elev</b>, 18,217 paired layouts whose rise, region size and wall
+contact are calibrated against measured real statistics, and <b>MP3D-Elev</b>, 72
+real elevation fields as an out-of-distribution set (§3).</li>
+<li><b>Metrics</b> for failures that only exist off a single plane, plus an
+<code>elevation F1</code> that abstention cannot win (§4).</li>
+<li><b>A two-stage generator</b> and, deliberately, <b>the record of what did not
+work</b> (§7).</li>
+</ol>
+
+<h2 id="s2">2. Elevation Fields</h2>
+
+<h3>2.1 Formalism</h3>
+<p>A room becomes a piecewise-constant height field over its outline:</p>
+<pre>S = ( P , { (R_k, h_k) }_{k=1..K} , T )
+
+  P     ⊂ ℝ²   room outline
+  R_k   ⊂ P    tier k; tiers are disjoint and cover P (holes allowed)
+  h_k   ∈ ℝ    floor height of tier k, relative to the room datum
+  T            transitions { (edge, kind, rise, run, n_tread) },
+               kind ∈ { step, stair, ramp, ledge }
+
+K = 1  ⟹  the setting every current method already works in.</pre>
+
+<p>Two details matter. Tiers <b>may have holes</b>: a sunken lounge in the middle
+of a room leaves the datum as an annulus, and a tier restricted to simple rings
+would have to overlap the region it surrounds. And traversability is decided by
+the <b>per-riser</b> height, not the total rise — 0.45 m in three treads is
+walkable for a quadruped, a single 0.45 m drop is not — so <code>n_tread</code> is
+a field rather than a derived quantity.</p>
+
+<h3>2.2 Support trees: \(z\) is derived, not predicted</h3>
+<p>Guidance-based methods emit a free \(z\) and push it back onto a surface
+<a class="cite" href="#r-physcene">[PhyScene]</a><a class="cite" href="#r-spread">[SPREAD]</a>,
+which leaves floating in the output space to be repaired. Here an object stores
+what it stands on and how far above:</p>
+
+<pre>o_i = ( c_i , π(i) , x_i , y_i , Δz_i , d_i , θ_i )
+
+  π(i)  ∈ { tier R_k } ∪ { object o_j } ∪ { wall, ceiling }
+  z_i   = top(π(i)) + Δz_i      ← forward pass through the tree</pre>
+
+<p>The consequence is structural rather than numerical: \(\mathcal{L}_\text{contact}
+= \sum_i \lvert z_i - (z_{\pi(i)} + h_{\pi(i)}) \rvert \equiv 0\), verified as a
+unit test. Floating and vertical interpenetration are not representable, so what
+remains are horizontal failures — which is what §4 measures. We do not claim this
+mechanism as novel; parent-relative placement is standard in support-graph scene
+models <a class="cite" href="#r-hsm">[HSM]</a>. What is new is applying it to the
+<i>floor</i> rather than to furniture surfaces.</p>
+
+<h2 id="s3">3. Data</h2>
+
+<h3>3.1 FRONT-Elev</h3>
+<p>3D-FRONT supplies no multi-elevation supervision but 37,529 professionally
+designed layouts. FRONT-Elev keeps those and changes the floor underneath.</p>
+
+<p>The first version grew the elevated region out of the furniture group, on the
+reasoning that a sunken lounge is sized to the conversation group in it.
+<b>That was measurably wrong</b>: retargeting the same layouts into 34–49 m² rooms
+with project4's optimiser <a class="cite" href="#r-reroom">[ReRoom]</a> leaves the
+region fraction at 0.354, indistinguishable from the 0.35 it had in 20 m² rooms.
+Furniture fills a room proportionally. Real elevated floors are sized by
+architecture and the furniture arrives afterwards, so the region is now a convex
+band taken off a wall at a depth drawn from the measured distribution.</p>
+
+<div class="tw"><table>
+<thead><tr><th>corpus statistic</th><th>furniture-driven</th><th>architecture-driven</th><th>real</th></tr></thead>
+<tbody>
+<tr><td>region fraction, median</td><td>0.410</td><td class="win">0.278</td><td>0.271</td></tr>
+<tr><td>Wasserstein against real</td><td>0.128</td><td class="win">0.022</td><td>—</td></tr>
+<tr><td>lift rate</td><td>49.8 %</td><td class="win">73.8 %</td><td>—</td></tr>
+<tr><td>ground truth, all five failures</td><td>clean</td><td class="win">clean</td><td>—</td></tr>
+</tbody></table></div>
+
+<p>Across three corpus versions the region-size Wasserstein went
+0.164 → 0.099 → <b>0.022</b>. Rise magnitudes are drawn from the 202 measured real
+rises (Wasserstein 0.071 → 0.032), and wall contact is a draw at the measured
+73 %. Every scene is checked with the evaluation's own code before it is written:
+a benchmark whose ground truth contains the failures it measures is worse than no
+benchmark.</p>
+
+<figure>
+  <img src="assets/corpus_examples.png" alt="FRONT-Elev samples: flat original, lifted elevation field, section">
+  <figcaption><strong>Figure 1.</strong> Corpus samples. Left the original flat
+  layout, centre the lifted field (red = transition, S<i>n</i> = tread count),
+  right a section with per-agent reachability.</figcaption>
+</figure>
+
+<h3>3.2 MP3D-Elev</h3>
+<p>FRONT-Elev's fields are procedural, so training and testing on them alone
+partly measures the generator. MP3D-Elev is not: tier polygons, heights and
+staircases come from HouseLayout3D's annotations of real buildings. 72 rooms, 9
+buildings, 65 with a real annotated staircase, median area 34.2 m², median rise
+0.387 m. There are no furniture annotations and none are needed — the elevation
+metrics are intrinsic to a generated layout.</p>
+
+<h2 id="s4">4. Metrics</h2>
+
+<h3>4.1 Failures that only exist off one plane</h3>
+<p>Collision and floating rate <a class="cite" href="#r-physcene">[PhyScene]</a>
+are structurally blind here: they were defined where every object shares a plane,
+so none of them can see a sofa hanging over the lip of a sunken lounge.</p>
+
+<div class="tw"><table>
+<thead><tr><th>id</th><th>failure</th><th>definition</th></tr></thead>
+<tbody>
+<tr><td>F1a</td><td>overhang</td><td>footprint leaves its tier onto <i>lower</i> ground</td></tr>
+<tr><td>F1b</td><td>embedded</td><td>footprint leaves its tier into <i>higher</i> ground — it passes through the platform</td></tr>
+<tr><td>F2</td><td>straddling</td><td>meaningful footprint area on two tiers at different heights</td></tr>
+<tr><td>F3</td><td>step blocked</td><td>the treads of a transition are occupied</td></tr>
+<tr><td>F4</td><td>headroom</td><td>a standing surface has a soffit too low to stand under</td></tr>
+<tr><td>F5</td><td>datum</td><td>the declared support tier is not the tier under the object</td></tr>
+</tbody></table></div>
+
+<div class="note warn">
+F1 is split because a one-sided version is not a fair measure. A method that puts
+everything on the lowest tier — which is what a flat-floor method does — can never
+overhang anything, since there is nothing below to hang over. It can only fail by
+driving furniture into the platform beside it, and without F1b that failure goes
+uncounted while the same error the other way round is penalised. We found this by
+noticing the flat baseline was structurally immune to F1.
+</div>
+
+<h3>4.2 Capability-conditioned reachability (CCN)</h3>
+<p>Following CapNav's agent framing <a class="cite" href="#r-capnav">[CapNav]</a>,
+free space is rasterised at 6 cm, eroded by the agent's radius and flood-filled
+from the doors; a tier change is crossed only through a transition whose
+<i>per-riser</i> height the agent can manage.</p>
+
+<div class="tw"><table>
+<thead><tr><th>agent</th><th>max step</th><th>radius</th><th>headroom</th></tr></thead>
+<tbody>
+<tr><td>sweeping robot</td><td>0.02 m</td><td>0.17</td><td>0.12</td></tr>
+<tr><td>wheelchair user</td><td>ramp only</td><td>0.35</td><td>1.30</td></tr>
+<tr><td>wheeled service robot</td><td>0.05 m</td><td>0.25</td><td>1.20</td></tr>
+<tr><td>quadruped</td><td>0.20 m</td><td>0.20</td><td>0.70</td></tr>
+<tr><td>adult</td><td>0.45 m</td><td>0.23</td><td>1.90</td></tr>
+</tbody></table></div>
+
+<p>On one plane this metric is nearly constant across agents, which is why nobody
+reports it. On the same rooms with elevation the capability spread goes from
+<b>0.128 to 0.431</b>.</p>
+
+<h3>4.3 Elevation F1</h3>
+<p>Every failure in §4.1 is about an object being on the wrong tier, and an empty
+tier holds none — so a method that never uses the elevation posts the best
+violation rates. Precision is the share of a method's tier placements that are
+valid, recall is its use of the elevation against the ground truth, and
+\(F_1\) their harmonic mean.</p>
+
+<div class="note">
+<strong>This is a design choice, not a finding.</strong> Precision is defined as 0
+when a method makes no tier placements, so a flat baseline scores exactly 0.000 by
+construction. We state it that way rather than presenting the 0.000 as evidence.
+The justification is that a metric which cannot distinguish "used the elevation
+correctly" from "declined to use it" is not measuring the task.
+</div>
+
+<h2 id="s5">5. Method</h2>
+
+<p>Two stages. <b>M1</b> (3.5 M) proposes the elevation field; <b>M2</b> (27.8 M)
+lays out on it. A third module of the original design became an analytic
+rejection cost inside the sampler rather than a learned component.</p>
+
+<h3>5.1 M1 — the field</h3>
+<p>A field reduces to a program label, a convex region in the room's principal
+frame, and a rise. The region was an axis-aligned box at first, which left a gap
+against the formalism's "any \(R_k \subset P\)". Measured, that gap is real but
+smaller than it looks: 52 % of real elevated floors have rectangularity below
+0.90, yet a box <i>clipped to the room</i> still round-trips them at 0.905 median
+IoU, because the room boundary does part of the shaping.</p>
+
+<p>Where the box fails is the tail. We therefore represent a region by its
+<b>support function</b> \(h(u) = \max_{x \in R} \langle x, u\rangle\) sampled at
+fixed directions; the half-plane intersection is convex and valid by
+construction, and the box is the special case where the diagonal offsets are
+slack. The direction count is chosen by measurement, not argument:</p>
+
+<div class="tw"><table>
+<thead><tr><th>directions</th><th>IoU median</th><th>IoU 10th pct</th><th>params</th></tr></thead>
+<tbody>
+<tr><td>4 (the box)</td><td>0.905</td><td class="bad">0.471</td><td>4</td></tr>
+<tr><td>8</td><td>0.930</td><td>0.551</td><td>8</td></tr>
+<tr class="ours"><td>12 (used)</td><td>0.936</td><td class="win">0.626</td><td>12</td></tr>
+<tr><td>16</td><td>0.943</td><td>0.626</td><td>16</td></tr>
+</tbody></table></div>
+
+<p>M1's targets are <i>recovered</i> from the corpus rather than recorded during
+generation, so a reader can recompute them from the released data; recovery
+round-trips at IoU 1.000 for the 95.8 % of regions it accepts. The flat arm of
+each pair supplies the negatives, so the model learns that most rooms get
+nothing. Conditioning on room type moved the program head from 0.53 to
+<b>0.650</b> over five classes.</p>
+
+<h3>5.2 M2 — the layout</h3>
+<p>Autoregressive in the ATISS mould <a class="cite" href="#r-atiss">[ATISS]</a>,
+with tier tokens carrying each tier's geometry, height and smallest leaving
+riser; a <b>support pointer</b> replacing the \(z\) regression, scoring the tier
+tokens and already-placed objects; and mixture-density heads for plan position,
+size, yaw and offset. The last is not cosmetic: trained with smooth L1, the
+position head converges to the conditional mean of where a sofa goes, which is the
+middle of the room, and every sofa lands in the same place.</p>
+
+<h3>5.3 Calibration rather than tuning</h3>
+<p>Two sampler scalars are chosen on the held-out split against the ground truth,
+once per method so no method is favoured: the stop threshold against the object
+count, and the support temperature against the elevation use. MP3D-Elev reuses
+the in-distribution values, because calibrating on the test set would be
+cheating. Training the stop head with a positive-class weight equal to the mean
+object count moved its calibrated threshold from the floor of the sweep (0.05) to
+<b>0.5</b>.</p>
+
+<h2 id="s6">6. Experiments</h2>
+
+<h3>6.1 Held-out FRONT-Elev</h3>
+<p>300 rooms. The <code>no-height</code> column keeps the tier polygons and zeroes
+every height signal; <code>flatten</code> assigns every floor-standing object to
+the datum, which is what a flat-floor method does.</p>
+
+<div class="tw"><table>
+<thead><tr><th>metric</th><th>GT</th><th>ours</th><th>no-height</th><th>flatten</th><th>per-tier</th></tr></thead>
+<tbody>
+<tr><td>overhang F1a ↓</td><td>0.000</td><td>0.038</td><td>0.036</td><td class="win">0.019</td><td>0.049</td></tr>
+<tr><td>straddling F2 ↓</td><td>0.000</td><td>0.035</td><td>0.031</td><td class="win">0.023</td><td class="bad">0.077</td></tr>
+<tr><td>wrong tier F5 ↓</td><td>0.000</td><td>0.045</td><td>0.039</td><td class="win">0.008</td><td>0.019</td></tr>
+<tr><td>step blocked F3 ↓</td><td>0.000</td><td>0.170</td><td>0.190</td><td class="win">0.147</td><td class="bad">0.767</td></tr>
+<tr class="rule"><td><b>tier use, obj/scene</b></td><td>2.00</td><td class="win">2.18</td><td>2.22</td><td class="bad">0.00</td><td>3.76</td></tr>
+<tr><td>tier precision ↑</td><td>1.000</td><td>0.717</td><td>0.754</td><td class="bad">0.000</td><td>0.797</td></tr>
+<tr class="ours"><td><b>elevation F1 ↑</b></td><td>1.000</td><td>0.835</td><td>0.860</td><td class="bad">0.000</td><td>0.887</td></tr>
+<tr class="rule"><td>CCN sweeping robot ↑</td><td>0.629</td><td>0.483</td><td>0.497</td><td class="bad">0.409</td><td class="win">0.602</td></tr>
+</tbody></table></div>
+
+<div class="note warn">
+Read the <code>flatten</code> column with §4.3 in mind. It posts the best
+violation rates <i>and</i> places 0.00 objects on any non-datum tier. The two facts
+are the same fact.
+</div>
+
+<h3>6.2 Seed variance</h3>
+<p>Three seeds of the full model, same corpus and evaluation:</p>
+
+<div class="tw"><table>
+<thead><tr><th>metric</th><th>mean</th><th>sd</th><th>min</th><th>max</th></tr></thead>
+<tbody>
+<tr><td>overhang</td><td>0.0299</td><td>0.0042</td><td>0.0267</td><td>0.0346</td></tr>
+<tr><td>straddling</td><td>0.0311</td><td>0.0053</td><td>0.0276</td><td>0.0372</td></tr>
+<tr><td>wrong tier</td><td>0.0331</td><td>0.0119</td><td>0.0245</td><td>0.0468</td></tr>
+<tr><td>any violation (scene)</td><td>0.5400</td><td>0.0784</td><td>0.4633</td><td>0.6200</td></tr>
+<tr><td>tier precision</td><td>0.7778</td><td>0.0445</td><td>0.7274</td><td>0.8116</td></tr>
+</tbody></table></div>
+
+<h3>6.3 End to end</h3>
+<p>M1 proposes a field for 58 % of rooms and refuses on 42 %, leaving those flat.</p>
+
+<div class="tw"><table>
+<thead><tr><th>metric</th><th>GT</th><th>M1 + M2</th><th>flatten</th></tr></thead>
+<tbody>
+<tr><td>overhang ↓</td><td>0.000</td><td>0.017</td><td>0.019</td></tr>
+<tr><td>any violation (scene) ↓</td><td>0.003</td><td>0.313</td><td class="win">0.273</td></tr>
+<tr><td>tier use, obj/scene</td><td>2.00</td><td>0.88</td><td class="bad">0.00</td></tr>
+<tr class="ours"><td><b>elevation F1 ↑</b></td><td>1.000</td><td>0.556</td><td class="bad">0.000</td></tr>
+<tr><td>CCN sweeping robot ↑</td><td>0.629</td><td>0.575</td><td>0.596</td></tr>
+</tbody></table></div>
+
+<h3>6.4 Out of distribution: 72 real elevation fields</h3>
+
+<div class="tw"><table>
+<thead><tr><th>metric</th><th>ours</th><th>no-height</th><th>flatten</th><th>per-tier</th></tr></thead>
+<tbody>
+<tr><td>overhang ↓</td><td>0.049</td><td>0.049</td><td class="win">0.009</td><td>0.057</td></tr>
+<tr><td>straddling ↓</td><td>0.045</td><td>0.044</td><td class="win">0.017</td><td>0.044</td></tr>
+<tr><td>any violation (scene) ↓</td><td>0.597</td><td class="bad">0.667</td><td class="win">0.250</td><td>0.736</td></tr>
+<tr><td>tier use, obj/scene</td><td>2.06</td><td>2.42</td><td class="bad">0.00</td><td>3.88</td></tr>
+<tr class="ours"><td><b>elevation F1 ↑</b></td><td>0.839</td><td>0.805</td><td class="bad">0.000</td><td class="win">0.944</td></tr>
+<tr><td>CCN sweeping robot ↑</td><td>0.652</td><td>0.598</td><td class="bad">0.549</td><td class="win">0.727</td></tr>
+</tbody></table></div>
+
+<div class="note warn">
+<strong>Cluster-robust reading.</strong> Those 72 rooms come from 9 buildings and
+one contributes 24 of them. Between-building standard deviation of the
+any-violation rate is <b>0.259</b> against a mean of 0.355 — the standard error of
+the building-level mean is ≈0.086. Ours 0.355 ± 0.086 against flatten
+0.218 ± 0.055 is about <b>1.4 standard errors</b>: <b>not separated</b> once the
+clustering is accounted for. The overhang gap does survive — its
+leave-one-building-out ranges do not overlap.
+</div>
+
+<figure>
+  <img src="assets/samples_mp3d.png" alt="Three methods on real MP3D-Elev fields">
+  <figcaption><strong>Figure 2.</strong> Real elevation fields from HouseLayout3D.
+  Outlined objects violate an elevation constraint. In two of the four rooms the
+  raised tier is entirely empty in the <code>flatten</code> column.</figcaption>
+</figure>
+
+<h3>6.5 \(K = 1\): does it degrade to a competitive flat generator?</h3>
+<p>The formalism claims a strict generalisation, which had never been tested.
+project4 ran real PhyScene on 3D-FRONT living/dining rooms under PhyScene's own
+evaluator. Its room ids come from PhyScene's cache and cannot be matched
+one-for-one, so the comparison is anchored on the shared 3D-FRONT reference row —
+and the harness refuses to conclude if that anchor disagrees. It agrees
+(Col_obj 0.388 vs 0.388, R_out 0.072 vs 0.068).</p>
+
+<div class="tw"><table>
+<thead><tr><th>method</th><th>Col_obj ↓</th><th>Col_scene ↓</th><th>R_out ↓</th><th>R_walk ↑</th><th>R_reach ↑</th></tr></thead>
+<tbody>
+<tr><td>3D-FRONT reference</td><td>0.388</td><td>0.850</td><td>0.072</td><td>0.972</td><td>0.887</td></tr>
+<tr><td>PhyScene</td><td>0.409</td><td>0.867</td><td>0.122</td><td>0.963</td><td>0.863</td></tr>
+<tr><td>ReRoom (different task)</td><td>0.129</td><td>0.383</td><td>0.028</td><td>0.900</td><td>0.886</td></tr>
+<tr class="ours"><td><b>Elevate3D, K = 1</b></td><td class="win">0.381</td><td>0.900</td><td>0.128</td><td class="bad">0.834</td><td>0.872</td></tr>
+</tbody></table></div>
+
+<p>Comparable to PhyScene on collision and out-of-bounds — better on Col_obj, and
+matching the 3D-FRONT reference there — but clearly worse on walkable area
+(0.834 vs 0.963). <b>The strict-generalisation claim holds by halves.</b> ReRoom is
+listed for completeness but solves a different problem (transplanting a reference
+layout, not free generation).</p>
+
+<h3>6.6 A distributional appearance measure</h3>
+<p>Every metric so far counts a geometric violation. With no renderer available we
+rasterise each layout to a top-down map — R the category, G the height of the
+surface, B occupancy — and take a Fréchet distance between real and generated
+feature distributions under a frozen DINOv3 ViT-L/16
+<a class="cite" href="#r-dino">[DINOv3]</a>. <b>This is not image FID and is not
+comparable to one.</b></p>
+
+<p>The controls were run before the result, and the first version failed them: it
+painted category colour over the tier shading, making an object on a platform
+pixel-identical to one on the datum, and duly ranked the flat baseline better
+than real-against-real. With height as its own channel:</p>
+
+<div class="tw"><table>
+<thead><tr><th>control (B set vs real A)</th><th>distance</th></tr></thead>
+<tbody>
+<tr><td>real, disjoint rooms</td><td>1.57 <span class="lead">← floor</span></td></tr>
+<tr><td>+ every object moved to the datum</td><td>1.65</td></tr>
+<tr><td>+ categories permuted</td><td>1.63</td></tr>
+<tr><td>+ positions randomised in the room</td><td>2.30</td></tr>
+</tbody></table></div>
+
+<p>So it reads in-plane composition clearly (+0.7 for random placement) and tier
+membership barely (+0.08). Results, against the real held-out set:</p>
+
+<div class="tw"><table>
+<thead><tr><th>method</th><th>Fréchet ↓</th></tr></thead>
+<tbody>
+<tr><td>flatten</td><td>0.75</td></tr>
+<tr><td>real, train side</td><td>0.94 <span class="lead">← floor</span></td></tr>
+<tr><td>per-tier</td><td>1.03</td></tr>
+<tr class="ours"><td>ours</td><td>1.79</td></tr>
+<tr><td>no-height</td><td>2.89</td></tr>
+</tbody></table></div>
+
+<p>The two metrics disagree and the disagreement is the finding.
+<code>flatten</code> sits below the real-vs-real floor: its in-plane composition is
+indistinguishable from real, and what it lacks — elevation use — is what this
+metric barely sees and <code>elevation F1</code> scores 0.000. Ours uses the
+elevation but places less cleanly on it, consistent with a tier precision of
+0.72.</p>
+
+<h2 id="s7">7. Negative results</h2>
+
+<p>Reported at the same weight as §6 because several of them correct earlier
+claims of ours.</p>
+
+<h3>7.1 The tier-relative attention bias does nothing</h3>
+<p>Three learned scalars added to the attention logits (same tier / across tiers /
+parent-child) were proposed as a contribution. Across three rounds and two
+corpora, with and without, the model is within noise on every metric of both test
+sets. It is off by default.</p>
+
+<h3>7.2 The height signal is indistinguishable from noise in distribution</h3>
+<p>The strongest counter-argument to tier conditioning is that it may buy only
+"the floor is partitioned", not "the floor is <i>this</i> high". Zeroing every
+height signal while keeping the tier polygons:</p>
+
+<div class="tw"><table>
+<thead><tr><th>metric</th><th>ours (3 seeds)</th><th>no-height</th><th>gap</th></tr></thead>
+<tbody>
+<tr><td>overhang</td><td>0.0299 ± 0.0042</td><td>0.0357</td><td>0.6 sd</td></tr>
+<tr><td>straddling</td><td>0.0311 ± 0.0053</td><td>0.0310</td><td>0.7 sd</td></tr>
+<tr><td>wrong tier</td><td>0.0331 ± 0.0119</td><td>0.0390</td><td>0.5 sd</td></tr>
+</tbody></table></div>
+
+<p>Every gap is inside seed noise. <b>In distribution the height signal has no
+measurable benefit.</b> Out of distribution the sign reverses — elevation F1 0.839
+with height against 0.805 without — so the signal appears to help only where the
+tier geometry is unfamiliar. We do not have an explanation for the asymmetry and
+do not claim one.</p>
+
+<h3>7.3 An attribution we got wrong</h3>
+<p>An earlier round credited an out-of-distribution improvement to calibrating the
+generator's geometry. A scale ablation — same corpus, same sampler, the earlier
+number of training rooms — showed most of it was corpus scale and the sampler's
+step-clearance term. At equal training size the calibrated corpus is no better on
+out-of-distribution overhang. The calibration was still worth doing: it removed
+three invented parameters. It is a methodological cleanup, not a metric gain.</p>
+
+<h3>7.4 A next step we proposed and then refuted</h3>
+<p>Two corpus statistics were blamed on 3D-FRONT's small rooms, and a larger-room
+source was named as the fix. Both halves are wrong. Retargeting into 34–49 m²
+rooms leaves the region fraction at 0.354 against the corpus's 0.35, and
+Infinigen's own floorplan solver <a class="cite" href="#r-infinigen">[Infinigen]</a>
+produces a median room of <b>22.0 m²</b> against 3D-FRONT's 22.3 (n = 83, four
+houses, 1.6–10 min per house). Two measurements avoided a multi-day integration.</p>
+
+<h3>7.5 Two changes measured and reverted</h3>
+<ul>
+<li><b>Clearing the step's landing by moving furniture</b> widens transitions from
+1.9 m to 2.8 m against a real 2.9, but halves the yield and pushes objects into
+neighbouring tiers — ground-truth violation rate 0.015 → 0.44. Scoring candidate
+regions by how clear their landing already is lifted yield 52.7 % → 73.8 % but
+left the median width unmoved at 1.67 m. With both routes measured, transition
+width is a property of 3D-FRONT's furniture density at room boundaries.</li>
+<li><b>Upweighting non-datum tiers in the support loss</b> overshoots: elevation
+use 1.94 against a ground truth 1.66, tier precision 0.755 against 0.883. A
+calibrated sampling temperature reaches the same end without the cost.</li>
+</ul>
+
+<h2 id="s8">8. Limitations</h2>
+<ul>
+<li><b>The layout ground truth is synthetic.</b> MP3D-Elev breaks the circularity
+for the <i>field</i>; every <code>GT</code> column in §6 is still a 3D-FRONT layout
+rearranged by our rules. §7.4 shows those rules have been demonstrably wrong
+before.</li>
+<li><b>Absolute quality.</b> 0.54 of generated scenes contain at least one
+violation against 0.003 for ground truth.</li>
+<li><b>Regions are convex.</b> 15 % of real elevated floors are not; those are
+represented by their convex hull.</li>
+<li><b>No embodied experiment.</b> CCN is a geometric computation validated against no
+simulator and no robot. The embodied framing is a motivation, not a result.</li>
+<li><b>One dataset family.</b> Every layout derives from 3D-FRONT.</li>
+</ul>
+
+<h2 id="s9">References</h2>
+<ol class="refs">
+<li id="r-atiss">Paschalidou et al. <i>ATISS: Autoregressive Transformers for Indoor Scene Synthesis.</i> NeurIPS 2021.</li>
+<li id="r-diffuscene">Tang et al. <i>DiffuScene: Denoising Diffusion Models for Generative Indoor Scene Synthesis.</i> CVPR 2024.</li>
+<li id="r-physcene">Yang et al. <i>PhyScene: Physically Interactable 3D Scene Synthesis for Embodied AI.</i> CVPR 2024 (Highlight).</li>
+<li id="r-hsm">Pun, Tam et al. <i>HSM: Hierarchical Scene Motifs for Multi-Scale Indoor Scene Generation.</i> 3DV 2026.</li>
+<li id="r-architect">Wang et al. <i>Architect: Generating Vivid and Interactive 3D Scenes with Hierarchical 2D Inpainting.</i> NeurIPS 2024.</li>
+<li id="r-spread">Li et al. <i>SPREAD: Spatial-Physical REasoning via geometry Aware Diffusion.</i> CVPR 2026.</li>
+<li id="r-capnav">Su et al. <i>CapNav: Benchmarking Vision Language Models on Capability-conditioned Indoor Navigation.</i> CVPR 2026.</li>
+<li id="r-hl3d">HouseLayout3D. <i>A Benchmark and Training-Free Baseline for 3D Layout Estimation in the Wild.</i> NeurIPS 2025.</li>
+<li id="r-infinigen">Raistrick et al. <i>Infinigen Indoors: Photorealistic Indoor Scenes using Procedural Generation.</i> CVPR 2024.</li>
+<li id="r-3dfront">Fu et al. <i>3D-FRONT: 3D Furnished Rooms with layOuts and semaNTics.</i> ICCV 2021.</li>
+<li id="r-dino">Siméoni et al. <i>DINOv3.</i> 2025.</li>
+<li id="r-reroom">project4 / project5, <i>ReRoom: reference-guided 3D scene retargeting.</i></li>
+</ol>
+
+<footer>
+Elevate3D · project6 · working draft, 2026-08-30. All numbers reproduce from
+<a href="https://github.com/gino6178/project6">the repository</a>; the running
+research log with the full round-by-round history is at
+<a href="index.html">index.html</a>. Literature checked 2024-01 to 2026-08; no
+prior work was found that targets intra-room floor elevation as a generation
+output, a conclusion limited to public search.
+</footer>
+
+</div>
+</body>
+</html>

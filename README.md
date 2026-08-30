@@ -3,7 +3,8 @@
 Indoor scene synthesis where the floor is **not** one plane — sunken lounges,
 tatami platforms, split levels and mezzanines as a generation target.
 
-**[Method and results →](https://gino6178.github.io/project6/)**
+**[Paper →](https://gino6178.github.io/project6/paper.html)** ·
+**[Research log →](https://gino6178.github.io/project6/)**
 
 Every layout dataset in use stores a room as a 2D polygon and puts every object
 at `z = 0`. Measured on 3D-FRONT: across all 6,813 houses and 37,529 rooms the

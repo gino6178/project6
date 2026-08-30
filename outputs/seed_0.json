@@ -1,0 +1,36 @@
+{
+ "n": 300,
+ "results": {
+  "ours": {
+   "overhang_rate": 0.028323262839879154,
+   "embedded_rate": 0.03172205438066465,
+   "straddling_rate": 0.02756797583081571,
+   "headroom_rate": 0.010196374622356496,
+   "datum_rate": 0.024546827794561934,
+   "tier_use_area_frac": 0.26741253745982024,
+   "tier_use_objects_per_scene": 2.006666666666667,
+   "tier_density_ratio": 0.4136500566926581,
+   "tier_precision": 0.7943661971830986,
+   "step_blocked_scene_rate": 0.19333333333333333,
+   "any_violation_scene_rate": 0.5366666666666666,
+   "n_scenes": 300,
+   "n_objects": 2648,
+   "ccn_sweeping_robot": 0.50576280748806,
+   "ccn_wheelchair": 0.45929784130073953,
+   "ccn_wheeled_robot": 0.5015564285866725,
+   "ccn_quadruped": 0.7575636803960657,
+   "ccn_adult": 0.7562226858774772,
+   "ccn_spread": 0.45982589188242534,
+   "objects_per_scene": 8.826666666666666,
+   "elevation_f1": 0.0
+  }
+ },
+ "stop_thresholds": {
+  "ours": 0.65
+ },
+ "tier_temps": {
+  "ours": 1.3
+ },
+ "gt_objects_per_scene": 9.59,
+ "gt_tier_use": 2.0
+}
